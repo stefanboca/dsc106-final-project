@@ -563,3 +563,298 @@ a {
     transition: background-color 180ms ease;
   }
 }
+
+/* Reference yellow #FFD700 — first design checkpoint. */
+:root {
+  color-scheme: light;
+  background: #ffd700;
+  color: #080808;
+  font-family: Arial, Helvetica, sans-serif;
+  --muted: #292700;
+  --line: #080808;
+  --accent: #080808;
+  --yellow: #ffd700;
+}
+body { background: var(--yellow); }
+main { width: min(1600px, calc(100% - 72px)); margin: 0 auto; }
+.intro { position: relative; padding: 42px 0 38px; border-bottom: 8px solid #080808; }
+h1 {
+  font-family: "Arial Black", Arial, Helvetica, sans-serif;
+  font-size: clamp(5rem, 11.8vw, 11rem);
+  text-transform: uppercase;
+  font-weight: 900;
+  letter-spacing: -0.075em;
+  line-height: 0.96;
+  margin: 0;
+}
+h1 span { display: block; }
+h1 em { display: inline-block; background: #080808; color: var(--yellow); font-style: normal; padding: 0 0.1em 0.04em; margin-top: 0.06em; transform: rotate(-2deg); }
+h2, h3 { font-weight: 800; letter-spacing: -0.035em; }
+h2 { font-size: 1.5rem; }
+.timeline { border-bottom: 4px solid #080808; padding: 28px 0 24px; }
+.timeline-header { align-items: center; gap: 20px; }
+.timeline-header h2 { font-size: clamp(1.3rem, 2.3vw, 2.1rem); }
+.date-controls { gap: 0; border: 3px solid #080808; box-shadow: 5px 5px 0 #080808; background: var(--yellow); }
+button, input, select { border-radius: 0; border: 2px solid #080808; background: var(--yellow); color: #080808; min-height: 44px; }
+button { font-weight: 800; }
+.date-controls button { min-width: 54px; min-height: 54px; border: 0; background: #080808; color: var(--yellow); font-size: 1.6rem; }
+.date-controls label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; padding: 0 12px; }
+.date-controls input { border: 0; font-size: 0.88rem; font-weight: 700; padding-right: 12px; }
+button:not(:disabled):hover { background: #080808; color: var(--yellow); }
+.date-controls button:not(:disabled):hover { background: #343000; }
+:focus-visible { outline: 3px dashed #080808; outline-offset: 5px; }
+.caption { font-size: 0.77rem; line-height: 1.6; color: #292700; }
+#timeline-status { margin-top: 18px; }
+.timeline-panel { border: 3px solid #080808; padding: 14px 16px 4px; margin: 14px 0; background: #ffe640; }
+.timeline-panel > .caption { font-weight: 700; }
+.timeline-panel svg { height: 175px; }
+.timeline-panel svg .domain, .timeline-panel svg .tick line { stroke: #080808; }
+#temperature-timeline > g:first-of-type > g > line { stroke: #080808; stroke-opacity: 0.18; }
+.temperature-band { fill: #080808; opacity: 0.12; }
+.temperature-mean { stroke: #080808; stroke-width: 2.2; }
+.temperature-point { fill: #080808; }
+.temperature-spread { stroke: #080808; }
+svg text { font-family: Arial, Helvetica, sans-serif; }
+.map-header { margin: 32px 0 22px; }
+#map-date { font-size: clamp(1.8rem, 3.5vw, 3.4rem); font-weight: 900; letter-spacing: -0.065em; }
+.map-header p { font-size: 0.73rem; font-weight: 700; color: #080808; }
+.map-toolbar { background: #080808; color: var(--yellow); padding: 20px 24px; margin-bottom: 24px; }
+.map-controls { gap: 20px 36px; font-size: 0.85rem; }
+.map-slider { gap: 10px; }
+.map-slider input { accent-color: var(--yellow); }
+.map-slider output { color: var(--yellow); font-weight: 800; }
+.map-slider input[type="range"] { width: 140px; }
+#map-status, #selected-summary { color: var(--yellow); margin: 0; min-height: 0; }
+#map-status:not(:empty), #selected-summary:not(:empty) { margin-top: 14px; }
+.map-grid { gap: 24px; }
+.map-panel { border: 3px solid #080808; background: #ffd700; padding: 20px; box-shadow: 7px 7px 0 #080808; }
+.map-panel figcaption { min-height: 80px; gap: 12px; }
+.map-panel h3 { font-size: 1.4rem; }
+.map-panel p, .comparison-legend { color: #292700; }
+.polar-map { border-radius: 50%; border: 2px solid #080808; }
+.layer-status { margin-top: 18px; line-height: 1.6; }
+#map-selection-hint { margin-top: 20px; font-weight: 700; }
+.source-note { padding: 18px 0 28px; margin: 0; font-size: 0.77rem; line-height: 1.8; }
+a { color: #080808; font-weight: 700; text-decoration-thickness: 1.5px; }
+.trends { border-top: 8px solid #080808; margin: 16px 0 40px; padding: 32px 0 0; }
+.trends > h2 { font-size: clamp(2.5rem,5vw,5rem); text-transform: uppercase; line-height: 0.98; letter-spacing: -0.06em; max-width: 16ch; margin-bottom: 32px; }
+.trend-grid { gap: 24px; }
+.trend-panel { border: 3px solid #080808; padding: 22px; background: #ffe640; box-shadow: 7px 7px 0 #080808; }
+.trend-panel h3 { font-size: 1.3rem; margin-bottom: 12px; }
+.trend-panel select { font-size: 0.77rem; padding: 6px 8px; }
+.trend-chart { height: 280px; }
+.trend-axis .domain, .trend-axis .tick line { stroke: #080808; }
+.trend-y-axis .tick line { stroke-opacity: 0.2; }
+.trend-dot { stroke: var(--yellow); }
+.month-legend { grid-template-columns: repeat(6,minmax(0,1fr)); }
+.month-key { justify-content: flex-start; }
+.trend-method { border-top: 2px solid #080808; padding-top: 14px; }
+.trend-method summary { font-weight: 700; cursor: pointer; }
+#season-heatmap button { border-radius: 0; border: 1px solid #08080866; height: 24px; }
+#season-heatmap { border-spacing: 4px; margin-top: 14px; }
+#heatmap-gradient { border: 1px solid #080808; border-radius: 0; }
+.project-writeup { border-top: 8px solid #080808; padding: 30px 0; margin: 0; display: grid; grid-template-columns: 1fr 1.5fr; gap: 0 6vw; }
+.project-writeup h2 { grid-row: span 2; font-size: clamp(1.8rem,3vw,3rem); text-transform: uppercase; line-height: 1; }
+.project-writeup p { margin: 0 0 20px; line-height: 1.8; }
+@media (max-width: 1000px) {
+  main { width: calc(100% - 40px); }
+  .date-controls label { padding: 0 7px; }
+  .map-panel { padding: 16px; }
+  .map-grid, .trend-grid { gap: 20px; }
+}
+@media (max-width: 850px) { .trend-grid { grid-template-columns: 1fr; gap: 28px; } }
+@media (max-width: 650px) {
+  main { width: calc(100% - 32px); }
+  .intro { padding: 30px 0; border-bottom-width: 6px; }
+  h1 { font-size: clamp(3.1rem,12.5vw,5rem); }
+  .timeline { padding-top: 24px; }
+  .timeline-header h2 { font-size: 1.45rem; }
+  .date-controls { width: 100%; justify-content: space-between; }
+  .date-controls button { min-width: 44px; min-height: 48px; }
+  .date-controls input { max-width: 144px; min-width: 0; padding: 4px; font-size: 0.8rem; }
+  .date-controls label { font-size: 0.6rem; padding: 0 5px; }
+  .timeline-panel { padding: 12px 6px 0; }
+  #timeline-hint { font-size: 0.68rem; }
+  .map-header { gap: 12px; }
+  .map-toolbar { padding: 18px; }
+  .map-controls { gap: 22px; }
+  .map-slider { width: 100%; justify-content: space-between; }
+  .map-slider > label { width: 100%; }
+  .map-slider input[type="range"] { width: 40vw; }
+  .map-grid { grid-template-columns: 1fr; gap: 26px; }
+  .map-panel figcaption { min-height: 76px; }
+  .layer-status { min-height: 0; }
+  .trends { margin-top: 0; }
+  .trends > h2 { font-size: 2.5rem; }
+  .trend-panel { padding: 16px; }
+  .trend-chart { height: 250px; }
+  .project-writeup { grid-template-columns: 1fr; gap: 22px; }
+  .project-writeup h2 { grid-row: auto; }
+}
+
+/* Reference-led refinement: light typography and fine black rules. */
+:root { --muted: #292929; }
+main { width: min(1600px, calc(100% - 96px)); }
+.intro { padding: 64px 0 48px; border-bottom: 1px solid #080808; }
+h1 { font-family: Arial, Helvetica, sans-serif; font-size: clamp(3rem, 6.4vw, 6.8rem); font-weight: 400; letter-spacing: -0.045em; line-height: 1.08; }
+h1 span { display: inline; }
+h1 em { background: transparent; color: #080808; padding: 0; margin: 0; transform: none; font-style: normal; }
+h2, h3 { font-weight: 400; letter-spacing: -0.025em; }
+.timeline { border-bottom-width: 1px; padding: 32px 0; }
+.timeline-header h2 { font-size: 1.6rem; }
+.date-controls { border: 0; box-shadow: none; gap: 12px; }
+.date-controls button { border: 1px solid #080808; border-radius: 50%; min-width: 48px; min-height: 48px; background: transparent; color: #080808; font-size: 1.3rem; font-weight: 400; }
+.date-controls label { font-weight: 400; padding: 0; }
+.date-controls input { font-weight: 400; border-bottom: 1px solid #080808; padding: 6px 0; }
+button, input, select { font-weight: 400; border-width: 1px; }
+.date-controls button:not(:disabled):hover { background: #080808; color: var(--yellow); }
+.timeline-panel { border: 1px solid #080808; background: transparent; padding: 16px 18px 4px; }
+.timeline-panel > .caption { font-weight: 400; }
+.caption { color: #292929; }
+#map-date { font-size: clamp(1.8rem,3vw,3rem); font-weight: 400; letter-spacing: -0.045em; }
+.map-header p { font-weight: 400; }
+.map-toolbar { background: transparent; color: #080808; padding: 20px 0; border-top: 1px solid #080808; border-bottom: 1px solid #080808; }
+.map-slider input { accent-color: #080808; }
+.map-slider output, #map-status, #selected-summary { color: #080808; font-weight: 400; }
+.map-grid { gap: 32px; }
+.map-panel { border-width: 1px; box-shadow: none; padding: 22px; background: transparent; }
+.map-panel h3 { font-size: 1.3rem; }
+.polar-map { border: 0; }
+#map-selection-hint { font-weight: 400; }
+a { font-weight: 400; text-decoration-thickness: 1px; }
+.trends { border-top-width: 1px; padding-top: 36px; }
+.trends > h2 { font-weight: 400; font-size: clamp(2rem,4vw,4rem); letter-spacing: -0.045em; max-width: none; }
+.trend-grid { gap: 32px; }
+.trend-panel { border-width: 1px; box-shadow: none; background: transparent; padding: 24px; }
+.trend-panel h3 { font-size: 1.25rem; }
+.trend-method { border-top-width: 1px; }
+.trend-method summary { font-weight: 400; }
+#season-heatmap th { font-weight: 400; }
+.project-writeup { border-top-width: 1px; padding-top: 36px; }
+.project-writeup h2 { font-weight: 400; }
+@media (max-width: 1000px) { main { width: calc(100% - 48px); } }
+@media (max-width: 650px) {
+  main { width: calc(100% - 32px); }
+  .intro { padding: 36px 0 28px; border-bottom-width: 1px; }
+  h1 { font-size: clamp(2.8rem,11vw,4rem); }
+  h1 span { display: block; }
+  .date-controls { gap: 8px; }
+  .date-controls button { min-width: 42px; min-height: 42px; }
+  .timeline-panel { padding: 12px 6px 0; }
+  .map-toolbar { padding: 20px 0; }
+  .map-grid { gap: 24px; }
+  .map-panel, .trend-panel { padding: 16px; }
+  .trends > h2 { font-size: 2.3rem; }
+}
+
+/* Electric blue cards against the reference yellow page. */
+.map-panel,
+.trend-panel {
+  background: #0026ff;
+  color: #fff;
+  border-color: #0026ff;
+  --muted: #e3e8ff;
+  --line: #ffffff55;
+  --accent: #ffd700;
+}
+.map-panel p,
+.map-panel .comparison-legend,
+.trend-panel .caption,
+.trend-panel .trend-method,
+.trend-panel #heatmap-labels,
+.trend-panel #season-heatmap {
+  color: #e3e8ff;
+}
+.temperature-legend svg text { fill: #fff; }
+.temperature-legend svg .domain,
+.temperature-legend svg .tick line { stroke: #ffffff99; }
+.trend-panel .trend-axis { color: #e3e8ff; }
+.trend-panel .trend-axis text { fill: #e3e8ff; }
+.trend-panel .trend-axis .domain,
+.trend-panel .trend-axis .tick line { stroke: #ffffff55; }
+.trend-panel .trend-y-axis .tick line { stroke-opacity: 0.4; }
+.trend-panel .trend-method { border-color: #ffffff66; }
+.trend-panel select { background: #0026ff; color: #fff; border-color: #fff; color-scheme: dark; }
+.trend-panel .trend-dot { stroke: #0026ff; }
+.trend-panel .trend-point:hover .trend-dot,
+.trend-panel .trend-point:focus-visible .trend-dot { stroke: #fff; }
+.trend-panel :focus-visible { outline-color: #ffd700; }
+.trend-panel #heatmap-gradient { border-color: #ffffff99; }
+/* Keep the original data palette readable on a yellow plotting surface. */
+.trend-panel .trend-chart { background: #ffd700; margin: 16px 0 10px; }
+.trend-panel .trend-chart .trend-axis { color: #080808; }
+.trend-panel .trend-chart .trend-axis text { fill: #080808; }
+.trend-panel .trend-chart .trend-axis .domain,
+.trend-panel .trend-chart .trend-axis .tick line { stroke: #080808; }
+.trend-panel .trend-dot { stroke: #ffd700; }
+.trend-panel .month-swatch { box-shadow: 0 0 0 1px #ffffff88; }
+
+/* Warm plotting surfaces, selective blue accents, and restrained depth. */
+:root { --blue: #0026ff; --surface: #fffdf3; }
+body { background: #ffd700; }
+.intro { position: relative; padding-bottom: 52px; }
+.intro::after { content: ""; display: block; width: 84px; height: 5px; background: var(--blue); position: absolute; left: 0; bottom: -3px; }
+.date-controls { padding: 8px 10px; border: 1px solid #080808; background: var(--surface); box-shadow: 4px 5px 0 #080808; }
+.date-controls button { color: #fff; background: var(--blue); border-color: var(--blue); }
+.date-controls input { background: transparent; }
+.date-controls button:not(:disabled):hover { background: #001ac2; color: #fff; }
+.timeline-panel { background: var(--surface); border: 1px solid #080808; box-shadow: 5px 6px 0 #080808; padding: 18px 20px 8px; }
+.temperature-band { fill: #0026ff; opacity: 0.1; }
+.temperature-mean { stroke: #0026ff; }
+.temperature-point { fill: #0026ff; }
+.map-toolbar { background: #ffe342; border: 1px solid #080808; padding: 18px 22px; box-shadow: 3px 4px 0 #080808; margin-bottom: 30px; }
+.map-slider input { accent-color: #0026ff; }
+.map-slider output { color: #0026ff; font-weight: 600; }
+.map-grid, .trend-grid { gap: 32px; }
+.map-panel, .trend-panel {
+  background: var(--surface);
+  color: #080808;
+  border: 1px solid #080808;
+  padding: 24px;
+  box-shadow: 7px 8px 0 #0026ff, 12px 16px 20px #5d4e0020;
+  --muted: #4c5158;
+  --line: #d1d3d8;
+  --accent: #0026ff;
+}
+.map-panel h3, .trend-panel h3 { font-weight: 500; padding-bottom: 12px; border-bottom: 1px solid #d1d3d8; }
+.map-panel p, .map-panel .comparison-legend,
+.trend-panel .caption, .trend-panel .trend-method,
+.trend-panel #heatmap-labels, .trend-panel #season-heatmap { color: #4c5158; }
+.temperature-legend svg text { fill: #4c5158; }
+.temperature-legend svg .domain, .temperature-legend svg .tick line { stroke: #7a818b; }
+.map-panel figcaption { min-height: 96px; }
+.polar-map { box-shadow: 0 2px 12px #102d3c18; }
+.trend-panel .trend-chart { background: transparent; }
+.trend-panel .trend-axis, .trend-panel .trend-axis text { color: #4c5158; fill: #4c5158; }
+.trend-panel .trend-axis .domain, .trend-panel .trend-axis .tick line { stroke: #9ba2aa; }
+.trend-panel .trend-method { border-color: #d1d3d8; }
+.trend-panel select { color-scheme: light; background: var(--surface); color: #080808; border-color: #0026ff; }
+.trend-panel .trend-dot { stroke: var(--surface); }
+.trend-panel .trend-point:hover .trend-dot,
+.trend-panel .trend-point:focus-visible .trend-dot { stroke: #080808; }
+.trend-panel .month-swatch { box-shadow: none; }
+.trend-panel #heatmap-gradient { border-color: #9ba2aa; }
+.trend-panel :focus-visible, :focus-visible { outline-color: #0026ff; }
+.month-key { border-radius: 2px; padding: 0 3px; }
+.month-key:hover { background: #0026ff0d; }
+.source-note { padding-top: 24px; }
+.trends { margin-top: 28px; }
+.trends > h2 { margin-bottom: 36px; }
+.project-writeup { margin-top: 56px; padding-bottom: 48px; }
+a { text-decoration-color: #0026ff; text-underline-offset: 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .date-controls button { transition: transform 150ms ease, background 150ms ease; }
+  .date-controls button:not(:disabled):active { transform: translateY(2px); }
+}
+@media (max-width: 650px) {
+  .intro { padding-bottom: 32px; }
+  .date-controls { padding: 6px; gap: 5px; }
+  .date-controls label { font-size: 0.57rem; }
+  .date-controls button { min-width: 38px; min-height: 38px; }
+  .date-controls input { max-width: 130px; font-size: 0.76rem; }
+  .timeline-panel { padding: 14px 6px 2px; box-shadow: 3px 4px 0 #080808; }
+  .map-toolbar { padding: 18px; }
+  .map-panel, .trend-panel { padding: 18px; box-shadow: 4px 5px 0 #0026ff, 7px 10px 14px #5d4e001a; }
+  .map-grid, .trend-grid { gap: 28px; }
+  .map-panel figcaption { min-height: 90px; }
+}

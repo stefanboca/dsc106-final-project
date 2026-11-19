@@ -20,7 +20,7 @@
   <body>
     <main>
       <header class="intro">
-        <h1>Where the Ice Lasts</h1>
+        <h1><span>Where the</span> <span>Ice <em>Lasts</em></span></h1>
       </header>
 
       <section aria-label="Daily Arctic sea ice explorer">
@@ -80,6 +80,7 @@
           <p>North of 60° N <span>·</span> Daytime observations</p>
           <button id="retry-map" type="button" hidden>Retry data</button>
         </div>
+        <div class="map-toolbar">
         <div class="map-controls">
           <div class="map-slider">
             <label
@@ -122,6 +123,7 @@
         </div>
         <p id="map-status" class="caption" role="status"></p>
         <p id="selected-summary" class="caption" aria-live="polite"></p>
+        </div>
         <div class="map-grid">
           <figure class="map-panel" id="extent">
             <figcaption>
