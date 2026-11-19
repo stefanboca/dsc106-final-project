@@ -62,6 +62,11 @@
             <p class="caption">
               Mean ice surface temperature · shaded 10th–90th percentiles
             </p>
+            <div class="timeline-readout">
+              <span>—</span>
+              <strong>—</strong>
+              <span>—</span>
+            </div>
             <svg id="temperature-timeline" aria-hidden="true"></svg>
           </div>
           <p id="timeline-hint" class="caption">
@@ -122,8 +127,10 @@
             </div>
           </div>
         </div>
-        <p id="map-status" class="caption" role="status"></p>
-        <p id="selected-summary" class="caption" aria-live="polite"></p>
+        <p id="selected-summary" class="caption">
+          <span id="map-status" role="status">Loading maps…</span>
+          <span id="map-summary" aria-live="polite"></span>
+        </p>
         </div>
         <div class="map-grid">
           <figure class="map-panel" id="extent">

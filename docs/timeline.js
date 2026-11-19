@@ -13,13 +13,8 @@ export function createTimeline({ onDate, rows }) {
   const viewport = document.querySelector("#timeline-viewport");
   const status = document.querySelector("#timeline-status");
   const svg = d3.select("#temperature-timeline");
-  const readout = document.createElement("div");
-  readout.className = "timeline-readout";
-  const readoutDate = document.createElement("span");
-  const readoutValue = document.createElement("strong");
-  const readoutRange = document.createElement("span");
-  readout.append(readoutDate, readoutValue, readoutRange);
-  viewport.insertBefore(readout, svg.node());
+  const readout = viewport.querySelector(".timeline-readout");
+  const [readoutDate, readoutValue, readoutRange] = readout.children;
   const humanDate = d3.utcFormat("%b %-d, %Y");
   function showReadout(index) {
     const day = daily[index];
@@ -84,8 +79,33 @@ export function createTimeline({ onDate, rows }) {
   hoverHead.append("line").attr("y1", TOP).attr("y2", BASE);
   const hoverDot = hoverHead.append("circle").attr("r", 4);
 
+  let previewX = null;
   let frame = null;
   let renderedView;
+  function dayIndexAtX(x) {
+    return d3.utcDay.count(firstDay, d3.utcDay.round(timeScale.invert(x)));
+  }
+
+  function renderPreview() {
+    const inPlot =
+      previewX !== null &&
+      previewX >= timelineMargin.left &&
+      previewX <= timelineWidth - timelineMargin.right;
+    const index = inPlot
+      ? Math.max(0, Math.min(daySpan, dayIndexAtX(previewX)))
+      : selectedIndex;
+    showReadout(index);
+    if (index === selectedIndex) {
+      hoverHead.attr("display", "none");
+      return;
+    }
+    const day = daily[index];
+    hoverHead.attr("transform", `translate(${timeScale(dateAt(index))},0)`)
+      .attr("display", null);
+    hoverDot.attr("display", day ? null : "none");
+    if (day) hoverDot.attr("cy", currentBand(day.mean));
+  }
+
   function drawTimeline() {
     if (!timelineWidth) return;
     clampView();
@@ -97,7 +117,7 @@ export function createTimeline({ onDate, rows }) {
         renderTimeline();
         renderedView = view;
       }
-      showReadout(selectedIndex);
+      renderPreview();
       const day = daily[selectedIndex];
       selectedDot.attr("cy", day && currentBand ? currentBand(day.mean) : 0).attr("display", day ? null : "none");
       playhead.attr("transform", `translate(${timeScale(dateAt(selectedIndex))},0)`)
@@ -223,7 +243,7 @@ export function createTimeline({ onDate, rows }) {
     viewStart = anchorDay - (x - timelineMargin.left) / pixelsPerDay;
     drawTimeline();
   }
-  svg.node().addEventListener(
+  viewport.addEventListener(
     "wheel",
     (event) => {
       const zooming = event.ctrlKey || event.metaKey;
@@ -234,13 +254,15 @@ export function createTimeline({ onDate, rows }) {
         : event.deltaX || (event.shiftKey ? event.deltaY : 0);
       if (!raw) return;
       event.preventDefault();
+      const [x] = d3.pointer(event, svg.node());
+      previewX = svg.node().contains(event.target) ? x : null;
       const delta =
         raw *
         (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? plotWidth() : 1);
       if (zooming)
         zoomTimeline(
           Math.exp(-Math.max(-250, Math.min(250, delta)) * 0.004),
-          d3.pointer(event, event.currentTarget)[0],
+          x,
         );
       else {
         viewStart += delta / pixelsPerDay;
@@ -259,10 +281,7 @@ export function createTimeline({ onDate, rows }) {
       timelineMargin.left,
       Math.min(timelineWidth - timelineMargin.right, x),
     );
-    selectDay(
-      d3.utcDay.count(firstDay, d3.utcDay.round(timeScale.invert(bounded))),
-      { reveal: false },
-    );
+    selectDay(dayIndexAtX(bounded), { reveal: false });
   }
   function captureTimelinePointer(event) {
     try {
@@ -345,17 +364,6 @@ export function createTimeline({ onDate, rows }) {
     })
     .on("pointermove", (event) => {
       const [x, y] = d3.pointer(event, event.currentTarget);
-      if (x >= timelineMargin.left && x <= timelineWidth - timelineMargin.right) {
-        const index = Math.max(0, Math.min(daySpan, Math.round(d3.utcDay.count(firstDay, d3.utcDay.round(timeScale.invert(x))))));
-        showReadout(index);
-        const day = daily[index];
-        hoverHead.attr("transform", `translate(${timeScale(dateAt(index))},0)`)
-          .attr("display", index !== selectedIndex ? null : "none");
-        hoverDot.attr("cy", day && currentBand ? currentBand(day.mean) : 0).attr("display", day ? null : "none");
-      } else {
-        hoverHead.attr("display", "none");
-        showReadout(selectedIndex);
-      }
       if (timelineTouches.has(event.pointerId)) {
         event.preventDefault();
         timelineTouches.set(event.pointerId, { x, y });
@@ -376,10 +384,17 @@ export function createTimeline({ onDate, rows }) {
             }, 60);
           }
         }
-      } else if (event.pointerId === scrubPointer) scrubAtX(x);
+      } else if (event.pointerType !== "touch") {
+        previewX = x;
+        if (event.pointerId === scrubPointer) scrubAtX(x);
+        else drawTimeline();
+      }
     })
     .on("pointerup pointercancel lostpointercapture", finishTimelinePointer)
-    .on("pointerleave.readout", () => { hoverHead.attr("display", "none"); showReadout(selectedIndex); });
+    .on("pointerleave.readout", () => {
+      previewX = null;
+      drawTimeline();
+    });
   window.addEventListener("blur", () => {
     clearTimeout(touchCommit);
     touchCommit = null;
@@ -387,6 +402,8 @@ export function createTimeline({ onDate, rows }) {
     touchSession = null;
     touchGesture = null;
     scrubPointer = null;
+    previewX = null;
+    drawTimeline();
   });
 
   function stepDateWithArrow(event) {

@@ -6,7 +6,7 @@ const areaFormat = d3.format(".2f");
 const kmFormat = d3.format(",.0f");
 
 export function createMapSummary({ size, maskFor, filterPalette }) {
-  const output = document.querySelector("#selected-summary");
+  const output = document.querySelector("#map-summary");
   let region;
   let day;
   let frame;
