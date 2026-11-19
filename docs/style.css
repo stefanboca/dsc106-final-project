@@ -858,3 +858,308 @@ a { text-decoration-color: #0026ff; text-underline-offset: 4px; }
   .map-grid, .trend-grid { gap: 28px; }
   .map-panel figcaption { min-height: 90px; }
 }
+
+/* Glass experiment — preserved yellow, electric blue, and black palette. */
+:root { --glass: rgba(255, 253, 243, 0.7); }
+body {
+  background:
+    radial-gradient(ellipse at 5% 12%, #fff4b066 0, transparent 36%),
+    radial-gradient(ellipse at 98% 43%, #ffef8c66 0, transparent 32%),
+    #ffd700;
+}
+main { overflow: visible; }
+.intro { border-bottom-color: #08080844; }
+.intro::after { border-radius: 99px; box-shadow: 0 2px 9px #0026ff35; }
+.timeline { border-bottom-color: #08080833; }
+.date-controls {
+  background: rgba(255,253,243,0.6);
+  border: 1px solid #ffffffb3;
+  border-radius: 999px;
+  padding: 8px;
+  box-shadow: inset 0 1px 1px #fff, 0 5px 10px #6d550014, 0 16px 36px #6d55001c;
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+.date-controls button {
+  background: linear-gradient(150deg,#3656ff,#0026ff 65%);
+  border: 1px solid #ffffff77;
+  box-shadow: inset 0 1px 2px #ffffff66, 0 4px 10px #0026ff33;
+}
+.date-controls input { border-bottom-color: #08080833; }
+.timeline-panel,
+.map-panel,
+.trend-panel {
+  position: relative;
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.82);
+  border-radius: 28px;
+  box-shadow:
+    inset 0 1px 1px #ffffffee,
+    inset 0 -1px 1px #ffffff44,
+    0 4px 8px #7b5e000a,
+    0 18px 40px #7b5e0020;
+  backdrop-filter: blur(26px) saturate(135%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+}
+.timeline-panel { padding: 22px 24px 10px; border-radius: 24px; }
+.map-panel, .trend-panel {
+  background:
+    radial-gradient(ellipse at top left,#ffffff99,transparent 65%),
+    rgba(255,253,243,0.68);
+  padding: 28px;
+}
+.map-panel h3, .trend-panel h3 { border-bottom-color: #08080819; }
+.map-toolbar {
+  background: rgba(255,239,137,0.5);
+  border: 1px solid #ffffffaa;
+  border-radius: 22px;
+  padding: 20px 24px;
+  box-shadow: inset 0 1px 1px #ffffffbb, 0 10px 28px #7b5e0014;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+}
+.map-slider output { background: #ffffff66; padding: 5px 10px; border: 1px solid #ffffff88; border-radius: 999px; }
+.map-slider input[type="range"] { border: 0; background: transparent; }
+.polar-map { box-shadow: 0 1px 2px #fff, 0 8px 22px #102d3c22; }
+.trend-panel select { background: #ffffff66; border: 1px solid #0026ff55; border-radius: 12px; padding: 9px 12px; }
+.trend-panel .trend-method { border-color: #08080822; }
+.trends { border-color: #08080833; }
+.project-writeup { border-color: #08080833; }
+.month-key { border-radius: 9px; }
+#season-heatmap button { border-radius: 4px; border-color: #ffffff66; }
+#heatmap-gradient { border-radius: 8px; }
+@supports not (backdrop-filter: blur(1px)) {
+  .timeline-panel, .map-panel, .trend-panel, .date-controls { background: #fff6bd; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .map-panel, .trend-panel { transition: transform 220ms ease, box-shadow 220ms ease; }
+  @media (hover: hover) {
+    .map-panel:hover, .trend-panel:hover {
+      transform: translateY(-3px);
+      box-shadow: inset 0 1px 1px #fff, 0 8px 14px #7b5e000c, 0 24px 48px #7b5e0029;
+    }
+  }
+}
+@media (max-width: 650px) {
+  .date-controls { padding: 7px; box-shadow: inset 0 1px 1px #fff, 0 8px 22px #7b5e001c; }
+  .timeline-panel { padding: 16px 8px 5px; border-radius: 20px; box-shadow: inset 0 1px 1px #fff, 0 12px 28px #7b5e001c; }
+  .map-toolbar { padding: 20px 18px; border-radius: 20px; }
+  .map-panel, .trend-panel { padding: 20px; border-radius: 24px; box-shadow: inset 0 1px 1px #fff, 0 12px 28px #7b5e0020; }
+}
+
+/* Pointer-driven 3D glass: a small tilt, traveling light, and tactile controls. */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .map-panel, .trend-panel, .timeline-panel {
+    transform: perspective(1400px) rotateX(0deg) rotateY(0deg);
+    transition: transform 260ms ease-out, box-shadow 260ms ease-out;
+  }
+  .map-panel::after, .trend-panel::after, .timeline-panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    background: radial-gradient(ellipse at var(--light-x, 50%) var(--light-y, 50%), #ffffff66, #ffffff08 35%, transparent 65%);
+    box-shadow: inset 0 1px 2px #fff;
+    transition: opacity 220ms ease;
+  }
+  .map-panel.is-tilting, .trend-panel.is-tilting, .timeline-panel.is-tilting {
+    transform: perspective(1400px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateY(-4px);
+    box-shadow: inset 0 1px 2px #fff, 0 9px 16px #7b5e0010, 0 28px 52px #7b5e0030;
+    transition: transform 100ms ease-out, box-shadow 220ms ease;
+  }
+  .is-tilting::after { opacity: 1; }
+  .date-controls button { transition: transform 170ms ease, box-shadow 170ms ease, background 170ms ease; }
+  .date-controls button:not(:disabled):hover { transform: translateY(-2px) scale(1.06); box-shadow: inset 0 1px 2px #ffffffaa, 0 8px 16px #0026ff40; }
+  .date-controls button:not(:disabled):active { transform: translateY(1px) scale(0.94); box-shadow: inset 0 2px 4px #0003; }
+}
+
+/* Chart experiment: stable plots, clear focus, and connected selection. */
+.map-panel, .trend-panel, .timeline-panel,
+.map-panel:hover, .trend-panel:hover, .timeline-panel:hover {
+  transform: none;
+}
+.map-panel::after, .trend-panel::after, .timeline-panel::after { display: none; }
+.timeline-panel { padding: 22px 24px 12px; }
+.timeline-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  margin: 12px 0 14px;
+  color: #252737;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+.timeline-readout strong { color: #0026ff; font-weight: 500; font-size: 1.8rem; letter-spacing: -0.04em; }
+.timeline-readout > span:last-child { margin-left: auto; color: #515569; font-size: 0.75rem; }
+.timeline-readout.is-preview > span:first-child { text-decoration: underline dotted #0026ff; text-underline-offset: 5px; }
+.timeline-panel svg { height: 210px; }
+.timeline-panel svg text { font-size: 11px; }
+.timeline-panel .temperature-mean { stroke-width: 2.3; }
+.timeline-panel .temperature-point { r: 1.5; }
+.timeline-playhead > line { stroke: #0026ff; stroke-width: 2; stroke-dasharray: 3 3; }
+.timeline-playhead > path { fill: #0026ff; }
+.selected-day-dot { fill: #0026ff; stroke: #fffdf3; stroke-width: 2.5; }
+.timeline-panel svg .domain { display: none; }
+.map-panel { padding: 22px; box-shadow: inset 0 1px 1px #fff, 0 12px 28px #7b5e0019; }
+.map-panel figcaption { min-height: 82px; }
+.map-panel h3 { border-bottom: 0; padding-bottom: 0; font-weight: 500; }
+.polar-map { box-shadow: none; }
+#selected-summary:not(:empty) { border-top: 1px solid #0808081a; padding-top: 12px; font-size: 0.86rem; color: #0026ff; }
+.trend-chart { height: 300px; }
+.trend-panel .trend-axis text { font-size: 11px; }
+.trend-panel .trend-chart .trend-y-axis .tick line { stroke: #515569; stroke-opacity: 0.12; }
+.trend-panel .trend-chart .trend-axis .domain { display: none; }
+.trend-series.is-muted .trend-line { stroke: #9aa5bd; stroke-opacity: 0.3; stroke-width: 1.2; }
+.trend-series.is-muted .trend-dot { fill: #9aa5bd; opacity: 0.18; }
+.trend-series.is-active .trend-line { stroke: #0026ff; stroke-width: 3; }
+.trend-series.is-active .trend-dot { fill: #0026ff; r: 2.5; }
+.month-legend { gap: 7px; margin: 12px 0; }
+.month-key {
+  border: 1px solid #0026ff22;
+  background: #ffffff55;
+  border-radius: 999px;
+  justify-content: center;
+  padding: 6px 8px;
+  min-width: 0;
+  min-height: 34px;
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+.month-key.is-muted { color: #515569; }
+.month-key[aria-pressed="true"] { background: #0026ff; color: #fff; border-color: #0026ff; box-shadow: 0 3px 9px #0026ff22; }
+.month-key[aria-pressed="true"] .month-swatch { background: #fff; }
+.month-key:not(:disabled):hover { background: #0026ff15; color: #0026ff; }
+.month-key[aria-pressed="true"]:hover { background: #0020d6; color: #fff; }
+.month-swatch { width: 6px; height: 6px; border-radius: 50%; }
+#month-trend-detail, #heatmap-detail {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #ffffff77;
+  color: #0026ff;
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+#season-heatmap { border-spacing: 5px 4px; min-width: 395px; }
+#season-heatmap button { height: 25px; border: 1px solid #08080814; border-radius: 5px; position: relative; }
+#season-heatmap button.is-selected { outline: 2px solid #0026ff; outline-offset: 1px; box-shadow: inset 0 0 0 2px #fff; z-index: 1; }
+#season-heatmap button.is-selected::after { content: ""; position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #0026ff; border: 1px solid #fff; left: calc(50% - 3px); top: calc(50% - 3px); }
+#season-heatmap button:hover, #season-heatmap button:focus-visible { outline: 2px solid #0026ff; outline-offset: 1px; box-shadow: inset 0 0 0 1px #fff; }
+#season-heatmap tr.is-hovered > th, #season-heatmap thead .is-hovered { color: #0026ff; font-weight: 700; }
+.heatmap-scroll { padding: 4px; margin: 0 -4px; }
+@media (max-width: 650px) {
+  .timeline-panel { padding: 16px 10px 8px; }
+  .timeline-readout { gap: 6px 12px; }
+  .timeline-readout strong { font-size: 1.55rem; }
+  .timeline-readout > span:last-child { width: 100%; margin-left: 0; }
+  .timeline-panel svg { height: 200px; }
+  .trend-chart { height: 270px; }
+  .month-legend { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .map-panel { padding: 18px; }
+}
+.timeline-hover line { stroke: #0026ff; stroke-opacity: 0.35; stroke-dasharray: 2 4; }
+.timeline-hover circle { fill: #fffdf3; stroke: #0026ff; stroke-width: 2; }
+
+/* Typography experiment: softer hierarchy for the glass interface. */
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, svg text { font-family: inherit; }
+h1 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(3rem, 6.2vw, 6.4rem);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.08;
+  text-transform: none;
+}
+h2, h3 { font-weight: 500; letter-spacing: -0.025em; }
+.timeline-header h2 { font-size: 1.4rem; font-weight: 500; }
+#map-date { font-size: clamp(1.8rem, 3vw, 3rem); font-weight: 500; letter-spacing: -0.045em; }
+.trends > h2 { text-transform: none; font-size: clamp(2rem, 3.7vw, 3.7rem); font-weight: 500; letter-spacing: -0.045em; }
+.project-writeup h2 { text-transform: none; font-size: clamp(1.8rem, 2.7vw, 2.8rem); font-weight: 500; letter-spacing: -0.04em; }
+.map-panel h3, .trend-panel h3 { font-weight: 500; letter-spacing: -0.02em; font-size: 1.2rem; }
+.caption, .source-note { line-height: 1.65; letter-spacing: 0; }
+.timeline-readout strong { font-weight: 600; letter-spacing: -0.035em; }
+.timeline-readout, .map-slider output, #selected-summary,
+#season-heatmap, .trend-axis, .date-controls input { font-variant-numeric: tabular-nums; }
+.date-controls label { text-transform: none; font-size: 0.75rem; }
+.date-controls input { font-size: 0.84rem; }
+.project-writeup p { font-size: 0.96rem; line-height: 1.8; }
+@media (max-width: 650px) {
+  h1 { font-size: clamp(2.6rem, 10.5vw, 4rem); }
+  .timeline-header h2 { font-size: 1.3rem; }
+  .trends > h2 { font-size: 2.3rem; }
+  .date-controls label { font-size: 0.65rem; }
+  .date-controls input { font-size: 0.77rem; }
+}
+
+/* Web type scale informed by Apple's typography hierarchy. */
+:root {
+  --type-body: 1.0625rem;
+  --type-callout: 1rem;
+  --type-subhead: 0.9375rem;
+  --type-footnote: 0.8125rem;
+  --type-caption: 0.75rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-optical-sizing: auto;
+}
+body { font-size: var(--type-body); line-height: 1.45; }
+h1 { font-family: inherit; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 600; letter-spacing: -0.035em; line-height: 1.1; }
+h2, h3 { line-height: 1.25; }
+.timeline-header h2 { font-size: 1.375rem; font-weight: 600; letter-spacing: -0.02em; }
+#map-date { font-size: clamp(1.75rem, 2.7vw, 2.125rem); letter-spacing: -0.025em; font-weight: 600; }
+.trends > h2, .project-writeup h2 { font-size: clamp(1.75rem, 3vw, 2.125rem); letter-spacing: -0.025em; font-weight: 600; }
+.map-panel h3, .trend-panel h3 { font-size: 1.25rem; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+.caption, .source-note, .layer-status, .map-panel p, .comparison-legend,
+.map-header p, .trend-method, .trend-panel label, .trend-panel select { font-size: var(--type-footnote); line-height: 1.5; }
+.map-controls { font-size: var(--type-subhead); line-height: 1.4; }
+.map-slider output { font-size: var(--type-footnote); }
+.date-controls label { font-size: var(--type-footnote); line-height: 1.4; }
+.date-controls input { font-size: var(--type-subhead); }
+.timeline-readout { font-size: var(--type-subhead); line-height: 1.4; }
+.timeline-readout strong { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.02em; }
+.timeline-readout > span:last-child { font-size: var(--type-footnote); }
+#selected-summary:not(:empty), #month-trend-detail, #heatmap-detail { font-size: var(--type-footnote); line-height: 1.5; }
+.timeline-panel svg text, .trend-panel .trend-axis text { font-size: 12px; }
+.temperature-legend svg text { font-size: 12px; }
+.month-key { font-size: var(--type-footnote); }
+#season-heatmap, #heatmap-labels { font-size: var(--type-caption); }
+.project-writeup p { font-size: var(--type-body); line-height: 1.6; max-width: 68ch; }
+.date-controls { flex-wrap: wrap; }
+.map-panel figcaption { min-height: 88px; }
+@media (max-width: 650px) {
+  h1 { font-size: 2.5rem; letter-spacing: -0.03em; }
+  .timeline-header h2 { font-size: 1.375rem; }
+  .trends > h2, .project-writeup h2 { font-size: 1.75rem; }
+  .date-controls label { font-size: var(--type-caption); }
+  .date-controls input { font-size: 0.875rem; max-width: 138px; }
+  .timeline-readout strong { font-size: 1.75rem; }
+  .map-slider { gap: 8px; }
+  .month-legend { gap: 6px; }
+  #timeline-hint { font-size: var(--type-footnote); }
+}
+
+/* Quiet header: let typography and whitespace provide separation. */
+.intro {
+  border-bottom: 0;
+  padding: 48px 0 20px;
+}
+.intro::after { display: none; }
+h1 {
+  font-size: clamp(2.25rem, 4.3vw, 3.75rem);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+@media (max-width: 650px) {
+  .intro { padding: 30px 0 8px; }
+  h1 { font-size: 2.25rem; letter-spacing: -0.02em; }
+}

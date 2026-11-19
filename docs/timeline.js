@@ -13,6 +13,22 @@ export function createTimeline({ onDate, rows }) {
   const viewport = document.querySelector("#timeline-viewport");
   const status = document.querySelector("#timeline-status");
   const svg = d3.select("#temperature-timeline");
+  const readout = document.createElement("div");
+  readout.className = "timeline-readout";
+  const readoutDate = document.createElement("span");
+  const readoutValue = document.createElement("strong");
+  const readoutRange = document.createElement("span");
+  readout.append(readoutDate, readoutValue, readoutRange);
+  viewport.insertBefore(readout, svg.node());
+  const humanDate = d3.utcFormat("%b %-d, %Y");
+  function showReadout(index) {
+    const day = daily[index];
+    readoutDate.textContent = `${index === selectedIndex ? "Selected" : "Preview"} · ${humanDate(dateAt(index))}`;
+    readoutValue.textContent = day ? `${day.mean.toFixed(1)} °C` : "No observation";
+    readoutRange.textContent = day ? `10th–90th: ${day.p10.toFixed(1)} to ${day.p90.toFixed(1)} °C` : "Temperature data unavailable";
+    readout.classList.toggle("is-preview", index !== selectedIndex);
+  }
+  let currentBand;
   const firstDay = new Date(calendar.min + "T00:00:00Z");
   const lastDay = new Date(calendar.max + "T00:00:00Z");
   const daySpan = d3.utcDay.count(firstDay, lastDay);
@@ -57,10 +73,16 @@ export function createTimeline({ onDate, rows }) {
   const marks = svg.append("g").attr("clip-path", `url(#${clipId})`);
   const axis = svg.append("g");
   const playhead = svg.append("g").attr("pointer-events", "none");
+  playhead.attr("class", "timeline-playhead");
+  const selectedDot = playhead.append("circle").attr("class", "selected-day-dot").attr("r", 5);
   playhead.append("line").attr("y1", 7).attr("y2", BASE)
     .attr("stroke", "var(--accent)").attr("stroke-width", 1.5);
   playhead.append("path").attr("d", d3.symbol(d3.symbolTriangle).size(30)())
     .attr("transform", "translate(0,6) rotate(180)").attr("fill", "var(--accent)");
+
+  const hoverHead = svg.append("g").attr("class", "timeline-hover").attr("pointer-events", "none").attr("display", "none");
+  hoverHead.append("line").attr("y1", TOP).attr("y2", BASE);
+  const hoverDot = hoverHead.append("circle").attr("r", 4);
 
   let frame = null;
   let renderedView;
@@ -75,6 +97,9 @@ export function createTimeline({ onDate, rows }) {
         renderTimeline();
         renderedView = view;
       }
+      showReadout(selectedIndex);
+      const day = daily[selectedIndex];
+      selectedDot.attr("cy", day && currentBand ? currentBand(day.mean) : 0).attr("display", day ? null : "none");
       playhead.attr("transform", `translate(${timeScale(dateAt(selectedIndex))},0)`)
         .attr("display", selectedIndex < viewStart || selectedIndex > viewStart + visibleSpan() ? "none" : null);
     });
@@ -129,6 +154,7 @@ export function createTimeline({ onDate, rows }) {
       d3.min(days, (day) => day && Math.min(day.p10, day.mean)),
       d3.max(days, (day) => day && Math.max(day.p90, day.mean)),
     ]);
+    currentBand = band;
     const x = (d) => timeScale(d.date);
     const span = visibleSpan();
     const formatTick = d3.utcFormat(span > 730 ? "%Y" : span > 120 ? "%b %Y" : "%b %d");
@@ -167,6 +193,7 @@ export function createTimeline({ onDate, rows }) {
 
   function syncDate() {
     calendar.value = selectedDate();
+    window.dispatchEvent(new CustomEvent("arctic-date-change", { detail: selectedDate() }));
     previous.disabled = selectedIndex === 0;
     next.disabled = selectedIndex === daySpan;
     drawTimeline();
@@ -318,6 +345,17 @@ export function createTimeline({ onDate, rows }) {
     })
     .on("pointermove", (event) => {
       const [x, y] = d3.pointer(event, event.currentTarget);
+      if (x >= timelineMargin.left && x <= timelineWidth - timelineMargin.right) {
+        const index = Math.max(0, Math.min(daySpan, Math.round(d3.utcDay.count(firstDay, d3.utcDay.round(timeScale.invert(x))))));
+        showReadout(index);
+        const day = daily[index];
+        hoverHead.attr("transform", `translate(${timeScale(dateAt(index))},0)`)
+          .attr("display", index !== selectedIndex ? null : "none");
+        hoverDot.attr("cy", day && currentBand ? currentBand(day.mean) : 0).attr("display", day ? null : "none");
+      } else {
+        hoverHead.attr("display", "none");
+        showReadout(selectedIndex);
+      }
       if (timelineTouches.has(event.pointerId)) {
         event.preventDefault();
         timelineTouches.set(event.pointerId, { x, y });
@@ -340,7 +378,8 @@ export function createTimeline({ onDate, rows }) {
         }
       } else if (event.pointerId === scrubPointer) scrubAtX(x);
     })
-    .on("pointerup pointercancel lostpointercapture", finishTimelinePointer);
+    .on("pointerup pointercancel lostpointercapture", finishTimelinePointer)
+    .on("pointerleave.readout", () => { hoverHead.attr("display", "none"); showReadout(selectedIndex); });
   window.addEventListener("blur", () => {
     clearTimeout(touchCommit);
     touchCommit = null;

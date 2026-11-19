@@ -129,12 +129,18 @@ function drawMonthTrend(rows, onSelect) {
 
   let hovered;
   let focused;
+  let selectedMonth = +document.querySelector("#calendar-date").value.slice(5, 7) || 9;
 
   const legendGroup = d3.select("#month-legend");
-  const legend = legendGroup.selectAll(".month-key").data(months).join("span")
-    .attr("class", "month-key").attr("tabindex", 0)
+  const legend = legendGroup.selectAll(".month-key").data(months).join("button")
+    .attr("class", "month-key").attr("type", "button")
     .attr("data-month", (month) => month).attr("aria-label", nameOfMonth)
     .style("--month-color", (month) => monthColors(month))
+    .on("click", (_, month) => {
+      selectedMonth = month;
+      describeChange(data.find((series) => series.month === month).cells, month);
+      refreshFocus();
+    })
     .on("focus", function(_, month) {
       focused = this.matches(":focus-visible") ? month : null;
       refreshFocus();
@@ -156,18 +162,25 @@ function drawMonthTrend(rows, onSelect) {
   }
 
   function refreshFocus() {
-    const active = hovered ?? focused;
+    const active = hovered ?? focused ?? selectedMonth;
     series.classed("is-muted", ({ month }) => active != null && month !== active)
       .classed("is-active", ({ month }) => month === active);
     legend.classed("is-muted", (month) => active != null && month !== active);
-    details.textContent = "";
+    legend.attr("aria-pressed", (month) => String(month === selectedMonth));
+    details.textContent = `${nameOfMonth(active)} · 2002–2025`;
   }
+  refreshFocus();
+  window.addEventListener("arctic-date-change", ({ detail }) => {
+    selectedMonth = +detail.slice(5, 7);
+    describeChange(data.find((series) => series.month === selectedMonth).cells, selectedMonth);
+    refreshFocus();
+  });
 
   new ResizeObserver(([entry]) => {
     const width = entry.contentRect.width;
     if (!width) return;
-    const height = 248;
-    const left = 39;
+    const height = 280;
+    const left = 44;
     const right = width - 17;
     const bottom = height - 31;
     const x = d3.scaleLinear(d3.extent(years), [left, right]);
@@ -198,6 +211,8 @@ function drawHeatmap(rows, onSelect) {
   const maximum = d3.max(cells, (cell) => cell.area) || 1;
   const difference = d3.max(cells, (cell) => Math.abs(cell.anomaly)) || 1;
   let hoverCell;
+  let selectedPeriod = document.querySelector("#calendar-date").value.slice(0, 7);
+  const periodOf = (cell) => `${cell.year}-${String(cell.month).padStart(2, "0")}`;
 
   table.select("thead").append("tr").selectAll("th")
     .data(["Year", ...months.map((month) => shortMonth(monthDate(2002, month)))])
@@ -214,7 +229,11 @@ function drawHeatmap(rows, onSelect) {
       this.setAttribute("tabindex", 0);
       showCell(cell);
     })
-    .on("click", (_, cell) => onSelect(cell.year, cell.month))
+    .on("click", (_, cell) => {
+      selectedPeriod = periodOf(cell);
+      updateSelection();
+      onSelect(cell.year, cell.month);
+    })
     .on("keydown", function(event, cell) {
       const offset = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -months.length, ArrowDown: months.length }[event.key];
       if (!offset) return;
@@ -222,6 +241,17 @@ function drawHeatmap(rows, onSelect) {
       if ((offset === -1 && cell.month === months[0]) || (offset === 1 && cell.month === months.at(-1))) return;
       buttons.nodes()[cells.indexOf(cell) + offset]?.focus();
     });
+
+  function updateSelection() {
+    buttons.classed("is-selected", (cell) => periodOf(cell) === selectedPeriod)
+      .attr("aria-pressed", (cell) => String(periodOf(cell) === selectedPeriod));
+  }
+  updateSelection();
+  window.addEventListener("arctic-date-change", ({ detail: date }) => {
+    selectedPeriod = date.slice(0, 7);
+    updateSelection();
+    showCell(null);
+  });
 
   function label(cell) {
     const text = describe(cell);
@@ -231,7 +261,10 @@ function drawHeatmap(rows, onSelect) {
 
   function showCell(cell) {
     hoverCell = cell;
-    detail.textContent = cell ? label(cell) : "Select a cell to open its daily map.";
+    const selected = cells.find((cell) => periodOf(cell) === selectedPeriod);
+    detail.textContent = cell ? label(cell) : selected ? `Selected: ${label(selected)}` : "Select a cell to open its daily map.";
+    tr.classed("is-hovered", (row) => Boolean(cell && row[0].year === cell.year));
+    table.selectAll("thead th").classed("is-hovered", (_, index) => Boolean(cell && index === cell.month));
   }
 
   function renderMode() {
