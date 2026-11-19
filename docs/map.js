@@ -4,6 +4,8 @@ import {
 } from "./gibs.js";
 import { createLookback } from "./comparison.js";
 import { comparisonLayer, filteredLayers, iceMask } from "./ice-masks.js";
+import { linkMapInteractions } from "./map-interaction.js";
+import { createMapSummary } from "./map-summary.js";
 import { createTimeline } from "./timeline.js";
 import { createTrends } from "./trends.js";
 
@@ -24,8 +26,6 @@ const initialDate = calendar.value;
 calendar.min = archive.first;
 calendar.max = archive.last;
 calendar.value = initialDate;
-document.querySelector("#archive-years").textContent =
-  `${archive.first.slice(0, 4)}–${archive.last.slice(0, 4)}`;
 
 function stereographicFactor(radius) {
   const eccentricity = 0.08181919084262149; // WGS 84.
@@ -95,12 +95,12 @@ function drawLegend(colors) {
     .attr("height", 8).attr("fill", (d) => `rgb(${d.rgb.join(",")})`);
   const ticks = [-50, -30, -10, 10, 30];
   svg.append("g").attr("transform", "translate(0,10)")
-    .attr("color", "#d1e3e7")
+    .attr("color", "#4d656f")
     .call(d3.axisBottom(position).tickValues(ticks).tickSize(3)
       .tickFormat((value) => `${d3.format("d")(value)}°`))
     .call((axis) => axis.select(".domain").remove());
   svg.append("text").attr("x", width).attr("y", 23).attr("text-anchor", "end")
-    .attr("fill", "#d1e3e7").attr("font-size", 10).text("°C");
+    .attr("fill", "#4d656f").attr("font-size", 10).text("°C");
 }
 
 const filterEnabled = document.querySelector("#filter-enabled");
@@ -116,7 +116,7 @@ const filterPalette = temperatureColors().then((colors) => {
   ]));
 }).catch(() => {
   document.querySelector(".temperature-legend").textContent = "NASA temperature legend unavailable";
-  document.querySelector("#filter-note").textContent = "Temperature filtering is unavailable without the NASA color scale.";
+  filterEnabled.title = "Temperature filtering requires the NASA color scale.";
   return null;
 });
 
@@ -134,6 +134,9 @@ async function maskFor(day, cutoff) {
   return mask;
 }
 
+const mapSummary = createMapSummary({ size: mapSize, maskFor, filterPalette });
+linkMapInteractions(Object.values(maps), mapSize, mapRadius, mapSummary.setRegion);
+
 const prettyDate = d3.utcFormat("%B %-d, %Y");
 const dateString = d3.utcFormat("%Y-%m-%d");
 const asDate = (date) => new Date(date + "T00:00:00Z");
@@ -141,7 +144,7 @@ const minimumDay = asDate(archive.first);
 const maximumDay = asDate(archive.last);
 const timeline = createTimeline({ onDate: selectDate, rows: archive.days });
 const lookback = createLookback({ firstDate: archive.first, onChange: redrawMaps });
-const trends = createTrends({
+createTrends({
   archive,
   onSelect(year, month) {
     const current = asDate(timeline.selectedDate());
@@ -152,12 +155,16 @@ const trends = createTrends({
 });
 const mapStatus = document.querySelector("#map-status");
 const dayCache = new Map();
-const mapCacheLimit = 16;
+const prefetchRadius = 7;
+const overlayPrefetchRadius = 3;
+// Both displayed dates, both day windows, and two adjacent slider positions.
+const mapCacheLimit = 2 * (prefetchRadius + overlayPrefetchRadius) + 4;
 let displayedDate;
 let mapRequest;
 let selectionTimer;
 let loadingTimer;
 let redrawTimer;
+let warmKey;
 let warmGeneration = 0;
 let warmingGeneration;
 
@@ -190,13 +197,19 @@ function readMapDay(date) {
   return entry.promise;
 }
 
-function surroundingDays(date) {
+function prefetchDates(date) {
   const center = asDate(date);
   const days = [];
-  for (let distance = 1; distance <= 7; distance++) {
+  for (let distance = 1; distance <= prefetchRadius; distance++) {
     for (const offset of [distance, -distance]) {
       const day = d3.utcDay.offset(center, offset);
-      if (day >= minimumDay && day <= maximumDay) days.push(dateString(day));
+      if (day < minimumDay || day > maximumDay) continue;
+      const neighbor = dateString(day);
+      days.push(neighbor);
+      if (distance <= overlayPrefetchRadius) days.push(lookback.referenceFor(neighbor));
+    }
+    if (distance === 1) {
+      days.push(lookback.referenceFor(date, -1), lookback.referenceFor(date, 1));
     }
   }
   return days;
@@ -234,8 +247,7 @@ async function prepareOverlay(rasters, earlier, reference, cutoff, signal) {
   }
 }
 
-function selectDate(date, { warm = true } = {}) {
-  trends.setDate(date);
+function selectDate(date) {
   mapRequest?.abort();
   clearTimeout(selectionTimer);
   clearTimeout(loadingTimer);
@@ -243,9 +255,14 @@ function selectDate(date, { warm = true } = {}) {
   retry.hidden = true;
   const cutoff = filterEnabled.checked ? cutoffInput.valueAsNumber : null;
   const { reference, notice } = lookback.forDate(date);
-  const neighbors = surroundingDays(date);
-  const generation = warm ? ++warmGeneration : warmGeneration;
-  const wanted = new Set([date, reference, ...neighbors]);
+  const wanted = new Set([date, reference, ...prefetchDates(date)].filter(Boolean));
+  const neighbors = [...wanted].filter((day) => day !== date && day !== reference);
+  const key = JSON.stringify([date, reference, neighbors]);
+  if (key !== warmKey) {
+    warmKey = key;
+    warmGeneration++;
+  }
+  const generation = warmGeneration;
   for (const [cachedDate, entry] of dayCache) {
     if (!entry.ready && !wanted.has(cachedDate)) {
       entry.controller.abort();
@@ -307,6 +324,7 @@ function selectDate(date, { warm = true } = {}) {
       displayedDate = date;
       mapDate.textContent = label;
       mapStatus.textContent = "";
+      mapSummary.setDay(rasters, cutoff, archive.days[d3.utcDay.count(minimumDay, day)]);
     } catch {
       if (signal.aborted) return;
       retry.hidden = false;
@@ -374,7 +392,7 @@ function updateFilter() {
 }
 function redrawMaps() {
   clearTimeout(redrawTimer);
-  redrawTimer = setTimeout(() => selectDate(timeline.selectedDate(), { warm: false }), 40);
+  redrawTimer = setTimeout(() => selectDate(timeline.selectedDate()), 40);
 }
 filterEnabled.addEventListener("change", updateFilter);
 cutoffInput.addEventListener("input", updateFilter);

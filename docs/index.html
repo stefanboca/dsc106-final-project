@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Where the Ice Lasts</title>
     <link rel="stylesheet" href="./style.css" />
-    <link rel="preload" href="./data/daily-timeline.json" as="fetch" crossorigin />
+    <link
+      rel="preload"
+      href="./data/daily-timeline.json"
+      as="fetch"
+      crossorigin
+    />
     <script
       defer
       src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"
@@ -15,14 +20,7 @@
   <body>
     <main>
       <header class="intro">
-        <p class="eyebrow">Arctic sea ice <span>·</span> <span id="archive-years"></span></p>
         <h1>Where the Ice Lasts</h1>
-        <p>
-          Where is sea ice still visible at the end of summer, and how cold is
-          its surface? Follow the same day across two views from NASA’s Terra
-          satellite.
-        </p>
-        <a class="trends-link" href="#trends-title">Explore long-term trends</a>
       </header>
 
       <section class="explorer" aria-label="Daily Arctic sea ice explorer">
@@ -49,12 +47,9 @@
               </button>
             </div>
           </div>
-          <p class="caption timeline-method">
-            NASA MODIS samples north of 60° N. Temperatures come from pixels
-            with both an ice detection and a temperature retrieval. Ice extent
-            is the estimated area of the pixels where MODIS detected ice.
+          <p id="timeline-status" class="caption">
+            Loading daily observations…
           </p>
-          <p id="timeline-status" class="caption">Loading daily observations…</p>
           <div
             id="timeline-viewport"
             class="timeline-panel"
@@ -63,10 +58,11 @@
             aria-label="Daily ice surface temperature timeline"
             aria-describedby="timeline-hint"
           >
-            <p class="caption">Mean ice surface temperature · shaded 10th–90th percentiles</p>
+            <p class="caption">
+              Mean ice surface temperature · shaded 10th–90th percentiles
+            </p>
             <svg id="temperature-timeline" aria-hidden="true"></svg>
           </div>
-          <p id="selected-summary" class="caption" aria-live="polite"></p>
           <p id="timeline-hint" class="caption">
             <span class="desktop-hint"
               >Drag to scrub · Scroll sideways to pan · Ctrl/⌘ + scroll to zoom
@@ -84,33 +80,67 @@
           <p>North of 60° N <span>·</span> Daytime observations</p>
           <button id="retry-map" type="button" hidden>Retry data</button>
         </div>
-        <div class="temperature-filter">
-          <label><input type="checkbox" id="filter-enabled" disabled /> Filter maps by temperature</label>
-          <div class="temperature-cutoff">
-            <label for="temperature-cutoff">Below</label>
-            <input id="temperature-cutoff" type="range" min="-50" max="40" step="1" value="-10" disabled />
-            <output id="cutoff-value" for="temperature-cutoff">−10 °C</output>
+        <div class="map-controls">
+          <div class="map-slider">
+            <label
+              ><input type="checkbox" id="filter-enabled" disabled />
+              Temperature filter</label
+            >
+            <div class="slider-range">
+              <label for="temperature-cutoff">Below</label>
+              <input
+                id="temperature-cutoff"
+                type="range"
+                min="-50"
+                max="40"
+                step="1"
+                value="-10"
+                disabled
+              />
+              <output id="cutoff-value" for="temperature-cutoff">−10 °C</output>
+            </div>
           </div>
-          <p id="filter-note" class="caption">Applies to all maps using temperatures estimated from NASA’s color bins.</p>
+          <div class="map-slider">
+            <label
+              ><input id="lookback-enabled" type="checkbox" /> Earlier-year
+              overlay</label
+            >
+            <div class="slider-range">
+              <label for="lookback-years">Years back</label>
+              <input
+                id="lookback-years"
+                type="range"
+                min="1"
+                max="26"
+                step="1"
+                value="21"
+                disabled
+              />
+              <output id="lookback-value" for="lookback-years">21</output>
+            </div>
+          </div>
         </div>
         <p id="map-status" class="caption" role="status"></p>
+        <p id="selected-summary" class="caption" aria-live="polite"></p>
         <div class="map-grid">
           <figure class="map-panel" id="extent">
             <figcaption>
               <h3>Sea ice extent</h3>
-              <div class="extent-lookback">
-                <label><input id="lookback-enabled" type="checkbox" /> Overlay an earlier year</label>
-                <div class="lookback-range">
-                  <label for="lookback-years">Years back</label>
-                  <input id="lookback-years" type="range" min="1" max="26" step="1" value="21" disabled />
-                  <output id="lookback-value" for="lookback-years">21</output>
-                </div>
-              </div>
-              <p id="extent-legend"><span class="swatch ice"></span> Ice detected</p>
+              <p id="extent-legend">
+                <span class="swatch ice"></span> Ice detected
+              </p>
               <ul id="overlay-legend" class="comparison-legend" hidden>
-                <li><span class="swatch ice"></span> <span id="selected-year-label">Selected year</span></li>
-                <li><span class="swatch comparison-ice"></span> <span id="comparison-year-label">Earlier year</span></li>
-                <li><span class="swatch shared-ice"></span> Detected in both</li>
+                <li>
+                  <span class="swatch ice"></span>
+                  <span id="selected-year-label">Selected year</span>
+                </li>
+                <li>
+                  <span class="swatch comparison-ice"></span>
+                  <span id="comparison-year-label">Earlier year</span>
+                </li>
+                <li>
+                  <span class="swatch shared-ice"></span> Detected in both
+                </li>
               </ul>
             </figcaption>
             <svg
@@ -118,6 +148,8 @@
               viewBox="0 0 700 700"
               role="img"
               aria-label="Arctic sea ice extent"
+              aria-describedby="map-selection-hint"
+              tabindex="0"
             ></svg>
             <p class="layer-status" role="status">Loading sea ice extent…</p>
           </figure>
@@ -134,12 +166,17 @@
               viewBox="0 0 700 700"
               role="img"
               aria-label="Arctic ice-surface temperature"
+              aria-describedby="map-selection-hint"
+              tabindex="0"
             ></svg>
             <p class="layer-status" role="status">
               Loading ice-surface temperature…
             </p>
           </figure>
         </div>
+        <p id="map-selection-hint" class="caption">
+          Drag on either map to select a region.
+        </p>
         <p class="source-note">
           Blank ocean can mean cloud, polar darkness, open water, or a missing
           observation.
@@ -155,26 +192,32 @@
       </section>
 
       <section class="trends" aria-labelledby="trends-title">
-        <header class="trends-header">
-          <div>
-            <h2 id="trends-title">Long-term ice detections</h2>
-            <p>Monthly medians of daily clear-sky ice detections north of 60° N, 2002–2025.</p>
-          </div>
-          <a href="#extent">View sea ice map</a>
-        </header>
+        <h2 id="trends-title">Long-term ice detections</h2>
         <div class="trend-grid">
           <div class="trend-panel">
             <h3>Detected area by year</h3>
-            <label for="trend-month">Month</label>
-            <select id="trend-month"></select>
-            <p id="monthly-takeaway"></p>
             <p class="caption">Median detected ice area, million km²</p>
-            <svg id="month-trend" class="trend-chart" role="group" aria-label="Detected ice area by year"></svg>
+            <svg
+              id="month-trend"
+              class="trend-chart"
+              role="group"
+              aria-label="Detected ice area by year"
+            ></svg>
+            <div
+              id="month-legend"
+              class="month-legend"
+              role="group"
+              aria-label="Highlight a month"
+            ></div>
             <p id="month-trend-detail" class="trend-detail caption"></p>
-            <p class="caption">Select a point or heatmap cell to update the maps. Turn on the sea ice overlay to compare with an earlier year.</p>
             <details class="trend-method">
               <summary>How to read these trends</summary>
-              <p class="caption">Each monthly value is the median of the available daily detected areas. Clouds, darkness, and archive gaps change coverage. Missing days are omitted from the median.</p>
+              <p class="caption">
+                Monthly medians use daily clear-sky ice detections north of 60°
+                N. Clouds, darkness, and archive gaps change coverage. Missing
+                days are omitted.
+              </p>
+              <p id="monthly-takeaway" class="caption"></p>
               <p id="temperature-context" class="caption"></p>
             </details>
           </div>
@@ -189,17 +232,52 @@
             <div class="heatmap-legend" aria-label="Heatmap color scale">
               <div id="heatmap-gradient"></div>
               <div id="heatmap-labels"></div>
-              <p class="caption"><span class="heatmap-missing"></span> No daily summaries</p>
+              <p class="caption">
+                <span class="heatmap-missing"></span> No daily summaries
+              </p>
             </div>
-            <p id="heatmap-detail" class="trend-detail caption" aria-live="polite"></p>
+            <p
+              id="heatmap-detail"
+              class="trend-detail caption"
+              aria-live="polite"
+            ></p>
             <div class="heatmap-scroll">
-              <table id="season-heatmap" aria-label="Monthly median detected ice area by year and month">
+              <table
+                id="season-heatmap"
+                aria-label="Monthly median detected ice area by year and month"
+              >
                 <thead></thead>
                 <tbody></tbody>
               </table>
             </div>
           </div>
         </div>
+      </section>
+
+      <section class="project-writeup" aria-labelledby="writeup-title">
+        <h2 id="writeup-title">Project writeup</h2>
+        <p>
+          So far, we have outlined a main interactive visualization that tells
+          an overarching narrative. From that we have built multiple
+          sub-interactive visualizations that add to that narrative. We drew
+          inspiration from the Visualizing MBTA Data page because we saw that it
+          had a main visualization then it had sub visualizations that gave
+          additional context. Also, doing this allows us to not have one
+          extremely cluttered visualization.
+        </p>
+        <p>
+          I think the most challenging part of our project to design will be to
+          make it "user friendly," aka making it intuitive to use while also
+          easily telling a story as they go through the visualizations one by
+          one. For example, our data looks both at yearly data, but then also
+          within that yearly data there is day-by-day data. This leaves us with
+          a lot of options for how we want to convey year by year, but also day
+          by day, and even days over years and we have to be careful in choosing
+          a visualization that can achieve this while also not being confusing.
+          This is because making something easy to understand or intuitive isn't
+          something that will be extremely obvious on first try and might take
+          multiple tries.
+        </p>
       </section>
     </main>
   </body>

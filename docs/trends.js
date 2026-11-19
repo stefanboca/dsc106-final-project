@@ -7,6 +7,12 @@ const fixed = d3.format(".2f");
 const signed = d3.format("+.2f");
 const monthDate = (year, month) => new Date(Date.UTC(year, month - 1, 1));
 
+const monthColors = d3.scaleOrdinal(months, [
+  "#1d5aaa", "#287f9d", "#00877e", "#3e782e", "#758214", "#a97400",
+  "#d15d22", "#bc3e42", "#ad397d", "#8344a1", "#5f56b4", "#435b75",
+]);
+const nameOfMonth = (month) => monthName(monthDate(2002, month));
+
 function summarizeMonths(archive) {
   const first = new Date(archive.first + "T00:00:00Z");
   const groups = d3.group(
@@ -68,129 +74,118 @@ function describeChange(data, month) {
 
 export function createTrends({ archive, onSelect }) {
   const rows = summarizeMonths(archive);
-  const plot = drawMonthTrend(rows, onSelect);
-  const heatmap = drawHeatmap(rows, onSelect);
-  let activeMonth;
-  return {
-    setDate(date) {
-      const key = date.slice(0, 7);
-      if (key === activeMonth) return;
-      activeMonth = key;
-      const year = +date.slice(0, 4);
-      const month = +date.slice(5, 7);
-      plot.setSelection(year, month);
-      heatmap.setSelection(year, month);
-    },
-  };
+  describeChange(rows.map((row) => row[8]), 9);
+  drawMonthTrend(rows, onSelect);
+  drawHeatmap(rows, onSelect);
 }
 
 function drawMonthTrend(rows, onSelect) {
-  const picker = d3.select("#trend-month");
-  picker.selectAll("option").data(months).join("option")
-    .attr("value", (month) => month).text((month) => monthName(monthDate(2002, month)));
   const svg = d3.select("#month-trend");
   const xAxis = svg.append("g").attr("class", "trend-axis");
   const yAxis = svg.append("g").attr("class", "trend-axis trend-y-axis");
-  const line = svg.append("path").attr("class", "trend-line");
-  const marks = svg.append("g");
-  const annotation = svg.append("text").attr("class", "record-label");
-  const labels = document.querySelector("#month-trend-detail");
-  let width;
-  let month;
-  let data;
-  let low;
-  let points;
-  let activeYear;
-  let activeMonth;
+  const details = document.querySelector("#month-trend-detail");
+  const data = months.map((month) => ({ month, cells: rows.map((row) => row[month - 1]) }));
+  const series = svg.append("g").selectAll("g").data(data).join("g")
+    .attr("class", "trend-series")
+    .attr("data-month", ({ month }) => month)
+    .style("--month-color", ({ month }) => monthColors(month));
+  const lines = series.append("path").attr("class", "trend-line");
+  const hitLines = series.append("path").attr("class", "trend-line-hit");
+  const points = series.selectAll("g").data(({ cells }) => cells.filter((cell) => cell.area !== undefined))
+    .join("g").attr("class", "trend-point").attr("role", "button")
+    .attr("aria-label", describe).attr("tabindex", -1)
+    .classed("record-low", ({ month, year }) => month === 9 && year === 2012)
+    .on("pointerenter", (_, cell) => { details.textContent = describe(cell); })
+    .on("pointerleave", () => refreshFocus())
+    .on("focus", function(_, cell) {
+      points.attr("tabindex", -1);
+      this.setAttribute("tabindex", 0);
+      focused = this.matches(":focus-visible") ? cell.month : null;
+      refreshFocus();
+      details.textContent = describe(cell);
+    })
+    .on("blur", () => {
+      focused = null;
+      refreshFocus();
+    })
+    .on("click", (_, cell) => onSelect(cell.year, cell.month))
+    .on("keydown", function(event, cell) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onSelect(cell.year, cell.month);
+        return;
+      }
+      const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -1, ArrowDown: 1 }[event.key];
+      if (!step) return;
+      event.preventDefault();
+      const acrossYears = event.key === "ArrowLeft" || event.key === "ArrowRight";
+      const peers = points.filter((point) => acrossYears ? point.month === cell.month : point.year === cell.year).nodes();
+      peers[peers.indexOf(this) + step]?.focus();
+    });
+  points.node()?.setAttribute("tabindex", 0);
+  points.append("circle").attr("r", 6).attr("class", "trend-hit");
+  points.append("circle").attr("r", 2).attr("class", "trend-dot");
+  points.append("title").text(describe);
 
-  function showMonth(next) {
-    if (next === month) return;
-    month = next;
-    data = rows.map((row) => row[month - 1]);
-    low = month === 9 ? data.find((cell) => cell.year === 2012 && cell.area !== undefined) : null;
-    picker.property("value", month);
-    svg.attr("aria-label", `${monthName(monthDate(2002, month))} detected ice area by year`);
-    annotation.text(low ? `2012 low · ${fixed(low.area)}` : "");
-    describeChange(data, month);
-    points = marks.selectAll("g").data(data.filter((cell) => cell.area !== undefined), (cell) => cell.year)
-      .join((enter) => {
-        const point = enter.append("g").attr("class", "trend-point").attr("role", "button")
-          .on("pointerenter", (_, cell) => { labels.textContent = describe(cell); })
-          .on("focus", function(_, cell) {
-            points.attr("tabindex", -1);
-            this.setAttribute("tabindex", 0);
-            labels.textContent = describe(cell);
-          })
-          .on("click", (_, cell) => onSelect(cell.year, cell.month))
-          .on("keydown", function(event, cell) {
-            const offset = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
-            if (offset) {
-              event.preventDefault();
-              const nodes = points.nodes();
-              nodes[nodes.indexOf(this) + offset]?.focus();
-            } else if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onSelect(cell.year, cell.month);
-            }
-          });
-        point.append("circle").attr("r", 10).attr("class", "trend-hit");
-        point.append("circle").attr("r", 4).attr("class", "trend-dot");
-        point.append("title");
-        return point;
-      })
-      .attr("aria-label", describe)
-      .classed("record-low", (cell) => cell === low);
-    points.select("title").text(describe);
-    render();
+  let hovered;
+  let focused;
+
+  const legendGroup = d3.select("#month-legend");
+  const legend = legendGroup.selectAll(".month-key").data(months).join("span")
+    .attr("class", "month-key").attr("tabindex", 0)
+    .attr("data-month", (month) => month).attr("aria-label", nameOfMonth)
+    .style("--month-color", (month) => monthColors(month))
+    .on("focus", function(_, month) {
+      focused = this.matches(":focus-visible") ? month : null;
+      refreshFocus();
+    })
+    .on("blur", () => { focused = null; refreshFocus(); });
+  legend.append("span").attr("class", "month-swatch").attr("aria-hidden", "true");
+  legend.append("span").text((month) => shortMonth(monthDate(2002, month)));
+  legendGroup.on("pointerover", (event) => {
+    const key = event.target.closest(".month-key");
+    if (key) preview(+key.dataset.month);
+  }).on("pointerleave", () => preview(null));
+  series.on("pointerenter", (_, { month }) => preview(month))
+    .on("pointerleave", () => preview(null));
+
+  function preview(month) {
+    if (hovered === month) return;
+    hovered = month;
+    refreshFocus();
   }
 
-  function render() {
+  function refreshFocus() {
+    const active = hovered ?? focused;
+    series.classed("is-muted", ({ month }) => active != null && month !== active)
+      .classed("is-active", ({ month }) => month === active);
+    legend.classed("is-muted", (month) => active != null && month !== active)
+      .classed("is-active", (month) => month === active);
+    details.textContent = "";
+  }
+
+  new ResizeObserver(([entry]) => {
+    const width = entry.contentRect.width;
     if (!width) return;
     const height = 248;
     const left = 39;
     const right = width - 17;
     const bottom = height - 31;
-    const x = d3.scaleLinear([2002, 2025], [left, right]);
-    const y = d3.scaleLinear([0, (d3.max(data, (cell) => cell.area) || 1) * 1.08],
-      [bottom, 12]).nice(4);
+    const x = d3.scaleLinear(d3.extent(years), [left, right]);
+    const max = d3.max(rows.flat(), (cell) => cell.area) || 1;
+    const y = d3.scaleLinear([0, max * 1.08], [bottom, 12]).nice(4);
     svg.attr("viewBox", `0 0 ${width} ${height}`);
     const ticks = width < 410 ? [2002, 2008, 2014, 2020, 2025] : [2002, 2006, 2010, 2014, 2018, 2022, 2025];
     xAxis.attr("transform", `translate(0,${bottom})`)
       .call(d3.axisBottom(x).tickValues(ticks).tickFormat(d3.format("d")).tickSizeOuter(0));
     yAxis.attr("transform", `translate(${left},0)`)
       .call(d3.axisLeft(y).ticks(4).tickSize(left - right).tickFormat(y.tickFormat(4, "~f")));
-    line.attr("d", d3.line().defined((cell) => cell.area !== undefined)
-      .x(({ year }) => x(year)).y(({ area }) => y(area))(data));
+    const line = d3.line().defined((cell) => cell.area !== undefined)
+      .x(({ year }) => x(year)).y(({ area }) => y(area));
+    lines.attr("d", ({ cells }) => line(cells));
+    hitLines.attr("d", ({ cells }) => line(cells));
     points.attr("transform", ({ year, area }) => `translate(${x(year)},${y(area)})`);
-    if (low) annotation.attr("x", x(low.year)).attr("y", y(low.area) + 19);
-  }
-
-  function highlight() {
-    const selected = activeMonth === month ? data.find((cell) => cell.year === activeYear) : null;
-    points.attr("aria-pressed", (cell) => cell === selected)
-      .attr("tabindex", (cell, index) => (selected?.area !== undefined ? cell === selected : index === 0) ? 0 : -1);
-    const detail = selected ?? low;
-    labels.textContent = detail ? describe(detail)
-      : points.empty() ? "No daily area summaries for this month." : "Select a year to see its daily map.";
-  }
-
-  picker.on("change", (event) => {
-    showMonth(+event.target.value);
-    highlight();
-  });
-  new ResizeObserver(([entry]) => {
-    width = entry.contentRect.width;
-    render();
   }).observe(svg.node());
-
-  return {
-    setSelection(year, month) {
-      activeYear = year;
-      activeMonth = month;
-      showMonth(month);
-      highlight();
-    },
-  };
 }
 
 function drawHeatmap(rows, onSelect) {
@@ -203,7 +198,7 @@ function drawHeatmap(rows, onSelect) {
   const cells = rows.flat();
   const maximum = d3.max(cells, (cell) => cell.area) || 1;
   const difference = d3.max(cells, (cell) => Math.abs(cell.anomaly)) || 1;
-  let selected;
+  let hoverCell;
 
   table.select("thead").append("tr").selectAll("th")
     .data(["Year", ...months.map((month) => shortMonth(monthDate(2002, month)))])
@@ -211,8 +206,10 @@ function drawHeatmap(rows, onSelect) {
   const tr = table.select("tbody").selectAll("tr").data(rows).join("tr");
   tr.append("th").attr("scope", "row").text((row) => row[0].year);
   const buttons = tr.selectAll("td").data((row) => row).join("td").append("button")
-    .attr("type", "button").attr("tabindex", -1).classed("missing", (cell) => cell.area === undefined)
+    .attr("type", "button").attr("tabindex", (cell) => cell === cells[0] ? 0 : -1)
+    .classed("missing", (cell) => cell.area === undefined)
     .on("pointerenter", (_, cell) => showCell(cell))
+    .on("pointerleave blur", () => showCell(null))
     .on("focus", function(_, cell) {
       buttons.attr("tabindex", -1);
       this.setAttribute("tabindex", 0);
@@ -234,6 +231,7 @@ function drawHeatmap(rows, onSelect) {
   }
 
   function showCell(cell) {
+    hoverCell = cell;
     detail.textContent = cell ? label(cell) : "Select a cell to open its daily map.";
   }
 
@@ -253,17 +251,9 @@ function drawHeatmap(rows, onSelect) {
     method.textContent = anomaly
       ? "Difference from the 2002–2025 median of the yearly values for that calendar month, in million km²."
       : "Median daily detected area, in million km².";
-    showCell(selected);
+    showCell(hoverCell);
   }
 
   mode.addEventListener("change", renderMode);
   renderMode();
-  return {
-    setSelection(year, month) {
-      selected = cells.find((cell) => cell.year === year && cell.month === month);
-      buttons.attr("aria-pressed", (cell) => cell === selected)
-        .attr("tabindex", (cell) => cell === (selected ?? cells[0]) ? 0 : -1);
-      showCell(selected);
-    },
-  };
 }

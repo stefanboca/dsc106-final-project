@@ -11,7 +11,6 @@ export function createTimeline({ onDate, rows }) {
   const previous = document.querySelector("#previous-date");
   const next = document.querySelector("#next-date");
   const viewport = document.querySelector("#timeline-viewport");
-  const summary = document.querySelector("#selected-summary");
   const status = document.querySelector("#timeline-status");
   const svg = d3.select("#temperature-timeline");
   const firstDay = new Date(calendar.min + "T00:00:00Z");
@@ -26,9 +25,9 @@ export function createTimeline({ onDate, rows }) {
   const selectedDate = () => formatDate(dateAt(selectedIndex));
   const daily = rows.map((row, index) => {
     if (!row) return null;
-    const [extent, mean, , p10, , , , p90] = row;
+    const [, mean, , p10, , , , p90] = row;
     const temperature = mean === undefined ? null : { mean, p10, p90 };
-    return { index, date: dateAt(index), extent, temperature };
+    return { index, date: dateAt(index), temperature };
   });
 
   let timelineWidth = 0;
@@ -182,19 +181,6 @@ export function createTimeline({ onDate, rows }) {
     calendar.value = selectedDate();
     previous.disabled = selectedIndex === 0;
     next.disabled = selectedIndex === daySpan;
-    refresh();
-  }
-
-  function refresh() {
-    const date = selectedDate();
-    const day = daily[selectedIndex];
-    const mean = day?.temperature;
-    const area = day?.extent;
-    const measures = [
-      mean ? `${mean.mean.toFixed(1)} °C mean` : "No temperature summary",
-      Number.isFinite(area) ? `${area.toFixed(2)} million km² detected` : "No extent summary",
-    ];
-    summary.textContent = [date, ...measures].join(" · ");
     drawTimeline();
   }
 
