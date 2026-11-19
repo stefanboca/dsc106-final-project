@@ -1,0 +1,584 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  color: #142d39;
+  background: #edf3f2;
+  --muted: #4d656f;
+  --line: #d4e0e1;
+  --accent: #b0402d;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  width: min(1440px, calc(100% - 48px));
+  margin: 0 auto;
+}
+h1,
+h2,
+h3,
+p,
+figure {
+  margin: 0;
+}
+.intro {
+  padding: 52px 0 28px;
+}
+.eyebrow {
+  color: #376373;
+  font-size: 0.77rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.eyebrow span,
+.map-header span {
+  padding: 0 0.25em;
+}
+h1 {
+  font:
+    500 clamp(3rem, 7vw, 6rem)/0.98 Georgia,
+    serif;
+  letter-spacing: -0.067em;
+  margin: 9px 0 15px;
+}
+.intro > p:last-of-type {
+  max-width: 710px;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: clamp(1rem, 2vw, 1.16rem);
+}
+.trends-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+.explorer {
+  background: #fff;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+}
+.timeline {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.timeline-header,
+.map-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+}
+h2 {
+  font-size: 1.15rem;
+  letter-spacing: -0.015em;
+}
+.date-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.date-controls label {
+  font-size: 0.78rem;
+  padding: 0 4px;
+}
+button,
+input {
+  font: inherit;
+  color: inherit;
+  background: #f4f8f8;
+  border: 1px solid #bfcfd2;
+  border-radius: 6px;
+  min-height: 38px;
+}
+button {
+  min-width: 38px;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+button:not(:disabled):hover {
+  background: #e4eeee;
+}
+input {
+  font-size: 0.88rem;
+  padding: 4px 7px;
+}
+:focus-visible {
+  outline: 2px solid #216378;
+  outline-offset: 3px;
+}
+.caption {
+  font-size: 0.79rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.timeline-method {
+  margin-top: 8px;
+}
+#timeline-status {
+  min-height: 1.5em;
+  margin-top: 2px;
+}
+#selected-summary {
+  min-height: 1.5em;
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+.timeline-panel {
+  margin: 6px 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #f7faf9;
+}
+.timeline-panel svg {
+  display: block;
+  width: 100%;
+  height: 168px;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+.timeline-panel svg text {
+  font-family: system-ui, sans-serif;
+  font-size: 10px;
+  fill: var(--muted);
+}
+.timeline-panel svg .domain,
+.timeline-panel svg .tick line {
+  stroke: #a2b9bf;
+}
+.touch-hint {
+  display: none;
+}
+.map-header {
+  margin: 17px 0 12px;
+}
+#map-status {
+  min-height: 1.5em;
+  margin: 4px 0 9px;
+}
+.temperature-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #f7faf9;
+  font-size: 0.88rem;
+}
+.temperature-filter label, .temperature-cutoff {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.temperature-filter input {
+  min-height: 24px;
+  accent-color: #216479;
+}
+.temperature-filter input[type="range"] {
+  width: clamp(95px, 18vw, 185px);
+}
+#cutoff-value {
+  min-width: 6ch;
+  font-variant-numeric: tabular-nums;
+}
+.temperature-filter .caption {
+  flex-basis: 100%;
+}
+.map-header p {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.map-panel {
+  background: #132e3e;
+  color: #edf7f7;
+  border-radius: 10px;
+  padding: 14px;
+  min-width: 0;
+}
+.map-panel figcaption {
+  display: grid;
+  align-content: start;
+  min-height: 95px;
+  gap: 7px;
+}
+.map-panel h3 {
+  font-size: 1rem;
+  font-weight: 650;
+}
+.map-panel p {
+  font-size: 0.76rem;
+  color: #cadbdf;
+}
+.swatch {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: -1px;
+}
+.ice {
+  background: #ff6464;
+}
+.extent-lookback,
+.extent-lookback label,
+.lookback-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.extent-lookback {
+  flex-wrap: wrap;
+  column-gap: 14px;
+  font-size: 0.77rem;
+}
+.extent-lookback input {
+  min-height: 24px;
+  margin: 0;
+  accent-color: #7bd6ef;
+}
+.extent-lookback input[type="range"] {
+  width: clamp(85px, 11vw, 150px);
+}
+#lookback-value {
+  min-width: 2ch;
+  font-variant-numeric: tabular-nums;
+}
+.comparison-legend {
+  flex-wrap: wrap;
+  gap: 4px 13px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #cadbdf;
+  font-size: 0.76rem;
+}
+.comparison-legend:not([hidden]) {
+  display: flex;
+}
+.comparison-ice {
+  background: #6fd7ff;
+}
+.shared-ice {
+  background: #d8a7f5;
+}
+.temperature-legend {
+  width: min(100%, 265px);
+}
+.temperature-legend svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.polar-map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.polar-map .land {
+  fill: #5a737b;
+  stroke: #9ab0b4;
+  stroke-width: 0.65px;
+}
+.polar-map .ocean {
+  fill: #1d4256;
+}
+.polar-map .outline {
+  fill: none;
+  stroke: #7899a7;
+  stroke-width: 1px;
+}
+.polar-map .graticule {
+  fill: none;
+  stroke: #b1c9d1;
+  stroke-opacity: 0.36;
+  stroke-width: 1px;
+}
+.polar-map .place {
+  font-size: 21px;
+  font-weight: 650;
+  fill: #f1f8f8;
+  paint-order: stroke;
+  stroke: #132e3e;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  text-anchor: middle;
+}
+.polar-map .pole {
+  stroke: #fff;
+  stroke-width: 1.6px;
+}
+.layer-status {
+  min-height: 1.3em;
+  line-height: 1.3;
+}
+.source-note {
+  margin-top: 14px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+a {
+  color: #215c70;
+  text-underline-offset: 3px;
+}
+
+@media (pointer: coarse) {
+  .desktop-hint {
+    display: none;
+  }
+  .touch-hint {
+    display: inline;
+  }
+}
+@media (max-width: 650px) {
+  main {
+    width: calc(100% - 26px);
+  }
+  .intro {
+    padding-top: 30px;
+  }
+  .explorer {
+    padding: 13px;
+  }
+  .map-grid {
+    grid-template-columns: 1fr;
+  }
+  #temperature figcaption {
+    min-height: 61px;
+  }
+  .map-header {
+    gap: 4px;
+  }
+  #selected-summary,
+  #map-status {
+    min-height: 3em;
+  }
+  .layer-status {
+    min-height: 2.6em;
+  }
+}
+@media (max-width: 370px) {
+  .date-controls label {
+    position: absolute;
+    clip-path: inset(50%);
+  }
+}
+
+.trends {
+  margin: 18px 0 28px;
+  padding: 22px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+}
+.trends-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 20px;
+  margin-bottom: 14px;
+}
+.trends-header p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.trends-header a {
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+.trend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+}
+.trend-panel {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #f7faf9;
+}
+.trend-panel h3 {
+  margin-bottom: 7px;
+  font-size: 1rem;
+}
+#monthly-takeaway {
+  margin-bottom: 13px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.trend-chart {
+  display: block;
+  width: 100%;
+  height: 248px;
+}
+.trend-axis {
+  color: var(--muted);
+  font-size: 10px;
+}
+.trend-axis .domain, .trend-axis .tick line {
+  stroke: #adc4c6;
+}
+.trend-y-axis .domain {
+  display: none;
+}
+.trend-y-axis .tick line {
+  stroke: var(--line);
+}
+.trend-line {
+  fill: none;
+  stroke: #7aadb1;
+  stroke-width: 1.7;
+}
+.trend-point {
+  cursor: pointer;
+}
+.trend-hit {
+  fill: transparent;
+}
+.trend-dot {
+  fill: #216479;
+  stroke: #f7faf9;
+  stroke-width: 1.3;
+}
+.record-low .trend-dot {
+  fill: var(--accent);
+  r: 5;
+}
+.trend-point[aria-pressed="true"] .trend-dot,
+.trend-point:focus-visible .trend-dot,
+.trend-point:hover .trend-dot {
+  stroke: #142d39;
+  stroke-width: 2;
+  r: 6;
+}
+.record-label {
+  fill: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.trend-detail {
+  margin-bottom: 6px;
+  min-height: 1.5em;
+  font-weight: 650;
+}
+.trend-method {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  color: var(--muted);
+  font-size: 0.83rem;
+}
+.trend-method p {
+  margin-top: 6px;
+}
+.trend-panel label, .trend-panel select {
+  font-size: 0.82rem;
+}
+.trend-panel select {
+  margin: 0 0 6px 4px;
+  padding: 4px;
+  color: inherit;
+}
+.heatmap-legend {
+  margin: 7px 0;
+  max-width: 320px;
+}
+#heatmap-gradient {
+  height: 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+#heatmap-labels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.73rem;
+  font-variant-numeric: tabular-nums;
+}
+.heatmap-missing,
+#season-heatmap button.missing {
+  background: repeating-linear-gradient(135deg, #e9eff0 0 3px, #bccdd1 3px 5px);
+}
+.heatmap-missing {
+  display: inline-block;
+  width: 15px;
+  height: 9px;
+  border: 1px solid #bccdd1;
+}
+.heatmap-scroll {
+  overflow-x: auto;
+}
+#season-heatmap {
+  width: 100%;
+  min-width: 370px;
+  table-layout: fixed;
+  border-spacing: 3px 2px;
+  font-size: 0.73rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+#season-heatmap th {
+  font-weight: 650;
+}
+#season-heatmap th:first-child {
+  width: 37px;
+}
+#season-heatmap td {
+  padding: 0;
+}
+#season-heatmap button {
+  display: block;
+  width: 100%;
+  height: 22px;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid #142d392b;
+  border-radius: 2px;
+  background: var(--heat-color);
+}
+#season-heatmap button[aria-pressed="true"] {
+  outline: 2px solid #142d39;
+  outline-offset: 0;
+}
+#season-heatmap button:hover,
+#season-heatmap button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+}
+@media (max-width: 850px) {
+  .trend-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 650px) {
+  .trends {
+    padding: 13px;
+  }
+}

@@ -2,8 +2,205 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Where the Ice Lasts</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="preload" href="./data/daily-timeline.json" as="fetch" crossorigin />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"
+    ></script>
+    <script type="module" src="./map.js"></script>
   </head>
-  <body></body>
+  <body>
+    <main>
+      <header class="intro">
+        <p class="eyebrow">Arctic sea ice <span>·</span> <span id="archive-years"></span></p>
+        <h1>Where the Ice Lasts</h1>
+        <p>
+          Where is sea ice still visible at the end of summer, and how cold is
+          its surface? Follow the same day across two views from NASA’s Terra
+          satellite.
+        </p>
+        <a class="trends-link" href="#trends-title">Explore long-term trends</a>
+      </header>
+
+      <section class="explorer" aria-label="Daily Arctic sea ice explorer">
+        <div class="timeline">
+          <div class="timeline-header">
+            <h2>Daily Arctic timeline</h2>
+            <div class="date-controls">
+              <button
+                id="previous-date"
+                type="button"
+                aria-label="Previous day"
+              >
+                ←
+              </button>
+              <label for="calendar-date">Date (UTC)</label>
+              <input
+                id="calendar-date"
+                type="date"
+                value="2024-09-15"
+                required
+              />
+              <button id="next-date" type="button" aria-label="Next day">
+                →
+              </button>
+            </div>
+          </div>
+          <p class="caption timeline-method">
+            NASA MODIS samples north of 60° N. Temperatures come from pixels
+            with both an ice detection and a temperature retrieval. Ice extent
+            is the estimated area of the pixels where MODIS detected ice.
+          </p>
+          <p id="timeline-status" class="caption">Loading daily observations…</p>
+          <div
+            id="timeline-viewport"
+            class="timeline-panel"
+            tabindex="0"
+            role="group"
+            aria-label="Daily ice surface temperature timeline"
+            aria-describedby="timeline-hint"
+          >
+            <p class="caption">Mean ice surface temperature · shaded 10th–90th percentiles</p>
+            <svg id="temperature-timeline" aria-hidden="true"></svg>
+          </div>
+          <p id="selected-summary" class="caption" aria-live="polite"></p>
+          <p id="timeline-hint" class="caption">
+            <span class="desktop-hint"
+              >Drag to scrub · Scroll sideways to pan · Ctrl/⌘ + scroll to zoom
+              · Arrow keys to step</span
+            >
+            <span class="touch-hint"
+              >Drag with one finger to scrub · Drag with two fingers to pan ·
+              Pinch to zoom</span
+            >
+          </p>
+        </div>
+
+        <div class="map-header">
+          <h2 id="map-date">September 15, 2024</h2>
+          <p>North of 60° N <span>·</span> Daytime observations</p>
+          <button id="retry-map" type="button" hidden>Retry data</button>
+        </div>
+        <div class="temperature-filter">
+          <label><input type="checkbox" id="filter-enabled" disabled /> Filter maps by temperature</label>
+          <div class="temperature-cutoff">
+            <label for="temperature-cutoff">Below</label>
+            <input id="temperature-cutoff" type="range" min="-50" max="40" step="1" value="-10" disabled />
+            <output id="cutoff-value" for="temperature-cutoff">−10 °C</output>
+          </div>
+          <p id="filter-note" class="caption">Applies to all maps using temperatures estimated from NASA’s color bins.</p>
+        </div>
+        <p id="map-status" class="caption" role="status"></p>
+        <div class="map-grid">
+          <figure class="map-panel" id="extent">
+            <figcaption>
+              <h3>Sea ice extent</h3>
+              <div class="extent-lookback">
+                <label><input id="lookback-enabled" type="checkbox" /> Overlay an earlier year</label>
+                <div class="lookback-range">
+                  <label for="lookback-years">Years back</label>
+                  <input id="lookback-years" type="range" min="1" max="26" step="1" value="21" disabled />
+                  <output id="lookback-value" for="lookback-years">21</output>
+                </div>
+              </div>
+              <p id="extent-legend"><span class="swatch ice"></span> Ice detected</p>
+              <ul id="overlay-legend" class="comparison-legend" hidden>
+                <li><span class="swatch ice"></span> <span id="selected-year-label">Selected year</span></li>
+                <li><span class="swatch comparison-ice"></span> <span id="comparison-year-label">Earlier year</span></li>
+                <li><span class="swatch shared-ice"></span> Detected in both</li>
+              </ul>
+            </figcaption>
+            <svg
+              class="polar-map"
+              viewBox="0 0 700 700"
+              role="img"
+              aria-label="Arctic sea ice extent"
+            ></svg>
+            <p class="layer-status" role="status">Loading sea ice extent…</p>
+          </figure>
+          <figure class="map-panel" id="temperature">
+            <figcaption>
+              <h3>Ice-surface temperature</h3>
+              <div
+                class="temperature-legend"
+                aria-label="NASA temperature scale in degrees Celsius"
+              ></div>
+            </figcaption>
+            <svg
+              class="polar-map"
+              viewBox="0 0 700 700"
+              role="img"
+              aria-label="Arctic ice-surface temperature"
+            ></svg>
+            <p class="layer-status" role="status">
+              Loading ice-surface temperature…
+            </p>
+          </figure>
+        </div>
+        <p class="source-note">
+          Blank ocean can mean cloud, polar darkness, open water, or a missing
+          observation.
+          <a
+            href="https://data.nasa.gov/dataset/modis-terra-sea-ice-extent-daily-l3-global-1km-ease-grid-day-v061-64ff1"
+            >NASA Terra MODIS</a
+          >
+          imagery via
+          <a href="https://nasa-gibs.github.io/gibs-api-docs/">NASA GIBS</a>.
+          Coastlines from Natural Earth.
+        </p>
+        <noscript>Enable JavaScript to use the timeline and maps.</noscript>
+      </section>
+
+      <section class="trends" aria-labelledby="trends-title">
+        <header class="trends-header">
+          <div>
+            <h2 id="trends-title">Long-term ice detections</h2>
+            <p>Monthly medians of daily clear-sky ice detections north of 60° N, 2002–2025.</p>
+          </div>
+          <a href="#extent">View sea ice map</a>
+        </header>
+        <div class="trend-grid">
+          <div class="trend-panel">
+            <h3>Detected area by year</h3>
+            <label for="trend-month">Month</label>
+            <select id="trend-month"></select>
+            <p id="monthly-takeaway"></p>
+            <p class="caption">Median detected ice area, million km²</p>
+            <svg id="month-trend" class="trend-chart" role="group" aria-label="Detected ice area by year"></svg>
+            <p id="month-trend-detail" class="trend-detail caption"></p>
+            <p class="caption">Select a point or heatmap cell to update the maps. Turn on the sea ice overlay to compare with an earlier year.</p>
+            <details class="trend-method">
+              <summary>How to read these trends</summary>
+              <p class="caption">Each monthly value is the median of the available daily detected areas. Clouds, darkness, and archive gaps change coverage. Missing days are omitted from the median.</p>
+              <p id="temperature-context" class="caption"></p>
+            </details>
+          </div>
+          <div class="trend-panel">
+            <h3>January through December</h3>
+            <label for="heatmap-mode">Color by</label>
+            <select id="heatmap-mode">
+              <option value="area">Detected area</option>
+              <option value="anomaly">Anomaly from the same month</option>
+            </select>
+            <p id="heatmap-method" class="caption"></p>
+            <div class="heatmap-legend" aria-label="Heatmap color scale">
+              <div id="heatmap-gradient"></div>
+              <div id="heatmap-labels"></div>
+              <p class="caption"><span class="heatmap-missing"></span> No daily summaries</p>
+            </div>
+            <p id="heatmap-detail" class="trend-detail caption" aria-live="polite"></p>
+            <div class="heatmap-scroll">
+              <table id="season-heatmap" aria-label="Monthly median detected ice area by year and month">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
 </html>
