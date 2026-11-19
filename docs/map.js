@@ -215,18 +215,16 @@ function prefetchDates(date) {
   return days;
 }
 
-function warmMapNeighbors(date, neighbors, generation) {
+async function warmMapNeighbors(date, neighbors, generation) {
   // Keep nearby pending entries so a scrub can use a request already in flight.
-  (async () => {
-    for (const day of neighbors) {
-      if (generation !== warmGeneration || date !== timeline.selectedDate()) return;
-      try {
-        await readMapDay(day);
-      } catch {
-        // A failed prefetch stays eligible for a foreground retry.
-      }
+  for (const day of neighbors) {
+    if (generation !== warmGeneration || date !== timeline.selectedDate()) return;
+    try {
+      await readMapDay(day);
+    } catch {
+      // A failed prefetch stays eligible for a foreground retry.
     }
-  })();
+  }
 }
 
 async function prepareOverlay(rasters, earlier, reference, cutoff, signal) {

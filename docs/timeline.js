@@ -24,10 +24,8 @@ export function createTimeline({ onDate, rows }) {
   const dateAt = (index) => new Date(+firstDay + index * DAY);
   const selectedDate = () => formatDate(dateAt(selectedIndex));
   const daily = rows.map((row, index) => {
-    if (!row) return null;
-    const [, mean, , p10, , , , p90] = row;
-    const temperature = mean === undefined ? null : { mean, p10, p90 };
-    return { index, date: dateAt(index), temperature };
+    const [, mean, , p10, , , , p90] = row ?? [];
+    return mean === undefined ? null : { index, date: dateAt(index), mean, p10, p90 };
   });
 
   let timelineWidth = 0;
@@ -82,65 +80,55 @@ export function createTimeline({ onDate, rows }) {
     });
   }
 
-  function renderGrid(ticks) {
-    const rows = grid.selectAll("g").data(ticks).join("g")
-      .attr("transform", ({ y }) => `translate(0,${y})`);
-    rows.selectAll("line").data((tick) => [tick]).join("line")
+  function renderGrid(scale) {
+    const ticks = grid.selectAll("g").data(scale.ticks(4)).join("g")
+      .attr("transform", (value) => `translate(0,${scale(value)})`);
+    ticks.selectAll("line").data((value) => [value]).join("line")
       .attr("x1", timelineMargin.left).attr("x2", timelineWidth - timelineMargin.right)
       .attr("stroke", "#dce7e8");
-    rows.selectAll("text").data((tick) => [tick]).join("text")
+    ticks.selectAll("text").data((value) => [value]).join("text")
       .attr("x", timelineMargin.left - 5).attr("y", 3).attr("text-anchor", "end")
-      .text(({ label }) => label);
+      .text((value) => `${d3.format("~g")(value)}°`);
   }
 
-  const temperatureTicks = (scale) => scale.ticks(4).map((value) => ({
-    y: scale(value), label: `${d3.format("~g")(value)}°`,
-  }));
-
-  function temperatureScale([low = -1, high = 1], range) {
+  function temperatureScale([low = -1, high = 1]) {
     const padding = low === high ? 0.5 : 0;
-    return d3.scaleLinear([low - padding, high + padding], range).nice(4);
+    return d3.scaleLinear([low - padding, high + padding], [BASE, TOP]).nice(4);
   }
 
-  function renderBand(columns, markedDays, x, y) {
-    const segments = columns.flatMap((day, index) =>
-      index && day.index > columns[index - 1].index + 1 ? [{}, day] : [day]);
-    const area = d3.area().defined((d) => !!d.temperature).x(x)
-      .y0(({ temperature }) => y(temperature.p10))
-      .y1(({ temperature }) => y(temperature.p90));
-    const line = d3.line().defined((d) => !!d.temperature).x(x)
-      .y(({ temperature }) => y(temperature.mean));
-    marks.selectAll(".temperature-band").data([segments]).join("path")
+  function renderBand(days, x, y) {
+    const area = d3.area().defined(Boolean).x(x)
+      .y0((day) => y(day.p10)).y1((day) => y(day.p90));
+    const line = d3.line().defined(Boolean).x(x).y((day) => y(day.mean));
+    marks.selectAll(".temperature-band").data([days]).join("path")
       .attr("class", "temperature-band").attr("fill", "#bdd9dd").attr("d", area);
-    marks.selectAll(".temperature-mean").data([segments]).join("path")
+    marks.selectAll(".temperature-mean").data([days]).join("path")
       .attr("class", "temperature-mean").attr("fill", "none")
       .attr("stroke", "#245668").attr("stroke-width", 1.6).attr("d", line);
-    const isolated = columns.filter((day, index) => day.temperature &&
-      !(columns[index - 1]?.temperature && columns[index - 1].index === day.index - 1) &&
-      !(columns[index + 1]?.temperature && columns[index + 1].index === day.index + 1));
+    const isolated = days.filter((day, index) => day && !days[index - 1] && !days[index + 1]);
     marks.selectAll(".temperature-spread").data(isolated, (d) => d.index).join("line")
       .attr("class", "temperature-spread").attr("stroke", "#7eaeb9")
       .attr("x1", x).attr("x2", x)
-      .attr("y1", (d) => y(d.temperature.p10)).attr("y2", (d) => y(d.temperature.p90));
+      .attr("y1", (d) => y(d.p10)).attr("y2", (d) => y(d.p90));
+    const step = Math.max(1, Math.ceil(3 / pixelsPerDay));
+    const markedDays = days.filter((day) => day && day.index % step === 0);
     marks.selectAll(".temperature-point")
-      .data(markedDays.filter((d) => d.temperature), (d) => d.index).join("circle")
+      .data(markedDays, (d) => d.index).join("circle")
       .attr("class", "temperature-point").attr("fill", "#245668")
       .attr("r", Math.min(2, Math.max(0.7, pixelsPerDay / 4)))
-      .attr("cx", x).attr("cy", (d) => y(d.temperature.mean))
+      .attr("cx", x).attr("cy", (d) => y(d.mean))
       .selectAll("title").data((d) => [d]).join("title")
-      .text(({ date, temperature: d }) => `${formatDate(date)} · ${d.mean.toFixed(1)} °C mean · 10th–90th ${d.p10.toFixed(1)} to ${d.p90.toFixed(1)} °C`);
+      .text(({ date, mean, p10, p90 }) => `${formatDate(date)} · ${mean.toFixed(1)} °C mean · 10th–90th ${p10.toFixed(1)} to ${p90.toFixed(1)} °C`);
   }
 
   function renderTimeline() {
     const first = Math.max(0, Math.ceil(viewStart));
     const last = Math.min(daySpan, Math.floor(viewStart + visibleSpan()));
-    const columns = daily.slice(first, last + 1).filter(Boolean);
-    const step = Math.max(1, Math.ceil(3 / pixelsPerDay));
-    const markedDays = columns.filter((day) => day.index % step === 0);
+    const days = daily.slice(first, last + 1);
     const band = temperatureScale([
-      d3.min(columns, ({ temperature }) => temperature && Math.min(temperature.p10, temperature.mean)),
-      d3.max(columns, ({ temperature }) => temperature && Math.max(temperature.p90, temperature.mean)),
-    ], [BASE, TOP]);
+      d3.min(days, (day) => day && Math.min(day.p10, day.mean)),
+      d3.max(days, (day) => day && Math.max(day.p90, day.mean)),
+    ]);
     const x = (d) => timeScale(d.date);
     const span = visibleSpan();
     const formatTick = d3.utcFormat(span > 730 ? "%Y" : span > 120 ? "%b %Y" : "%b %d");
@@ -148,15 +136,15 @@ export function createTimeline({ onDate, rows }) {
     svg.attr("viewBox", `0 0 ${timelineWidth} ${HEIGHT}`);
     clip.attr("x", timelineMargin.left).attr("y", TOP - 1)
       .attr("width", plotWidth()).attr("height", BASE - TOP + 2);
-    renderGrid(temperatureTicks(band));
-    renderBand(columns, markedDays, x, band);
+    renderGrid(band);
+    renderBand(days, x, band);
     axis.attr("transform", `translate(0,${BASE + 7})`).call(
       d3.axisBottom(timeScale).ticks(Math.max(2, Math.floor(plotWidth() / 68)))
         .tickFormat(formatTick).tickSize(4),
     );
 
     const formatRange = d3.utcFormat("%b %-d, %Y");
-    const detail = columns.some((day) => day.temperature)
+    const detail = days.some(Boolean)
       ? "Gaps indicate dates without temperature observations."
       : "No temperature observations in this range.";
     const firstLabel = formatRange(dateAt(first));

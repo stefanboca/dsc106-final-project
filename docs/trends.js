@@ -159,8 +159,7 @@ function drawMonthTrend(rows, onSelect) {
     const active = hovered ?? focused;
     series.classed("is-muted", ({ month }) => active != null && month !== active)
       .classed("is-active", ({ month }) => month === active);
-    legend.classed("is-muted", (month) => active != null && month !== active)
-      .classed("is-active", (month) => month === active);
+    legend.classed("is-muted", (month) => active != null && month !== active);
     details.textContent = "";
   }
 

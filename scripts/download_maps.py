@@ -21,10 +21,11 @@ def main():
     CACHE.mkdir(parents=True, exist_ok=True)
     OUTPUT.mkdir(parents=True, exist_ok=True)
     ice_days, temp_days = get_dates()
+    days = sorted(set(args.dates))
     for key, layer, available in (
         ("extent", ICE, ice_days), ("temperature", TEMPERATURE, temp_days)
     ):
-        for day in sorted(set(args.dates)):
+        for day in days:
             if day not in available:
                 print(f"No {key} imagery for {day}")
                 continue

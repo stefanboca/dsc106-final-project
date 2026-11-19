@@ -28,14 +28,6 @@ figure {
 .intro {
   padding: 36px 0 26px;
 }
-.eyebrow {
-  color: #376373;
-  font-size: 0.77rem;
-  font-weight: 750;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.eyebrow span,
 .map-header span {
   padding: 0 0.25em;
 }
@@ -44,12 +36,6 @@ h1 {
   line-height: 1.03;
   letter-spacing: -0.05em;
   margin: 9px 0 15px;
-}
-.intro > p:last-of-type {
-  max-width: 710px;
-  color: var(--muted);
-  line-height: 1.55;
-  font-size: clamp(1rem, 2vw, 1.16rem);
 }
 .timeline {
   padding-bottom: 14px;

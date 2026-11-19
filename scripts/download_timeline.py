@@ -155,7 +155,7 @@ def main():
     dates = [first + offset * DAY for offset in range((last - first).days + 1)]
     rows = [None] * len(dates)
     weights, colors = grid_weights(), palette()
-    failures = []
+    failures = 0
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         pending = {
             pool.submit(summarize, day, day in temperature_days, weights, colors): index
@@ -165,14 +165,14 @@ def main():
             index = pending[future]
             try:
                 rows[index] = future.result()
-            except (OSError, ValueError, requests.RequestException) as error:
-                failures.append(dates[index])
+            except (OSError, ValueError) as error:
+                failures += 1
                 print(f"{dates[index]}: {error}", flush=True)
             if completed % 250 == 0 or completed == len(pending):
                 print(f"{completed:,}/{len(pending):,} archive days processed", flush=True)
 
     if failures:
-        raise SystemExit(f"{len(failures)} downloads failed. Rerun to resume from the cache.")
+        raise SystemExit(f"{failures} downloads failed. Rerun to resume from the cache.")
 
     output = {
         "first": first.isoformat(),
